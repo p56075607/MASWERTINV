@@ -1,0 +1,266 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Sep 18 11:17:35 2023
+
+@author: Taufiq Rafie
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pygimli as pg
+from pygimli.physics import ert
+from pygimli.frameworks import PriorModelling, JointModelling
+from pygimli.viewer.mpl import draw1DColumn
+
+# Define a function to safely convert a string to a float, handling 'None' values
+def safe_float(value):
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
+# Load your data using np.genfromtxt with a custom converter
+data = np.genfromtxt("D:/kedaireka/code_ert/pygimli/LR.dat", converters={2: safe_float})
+
+# Assuming your data has three columns, unpack them into x, z, and r
+x, z, r = data[:, 0], data[:, 1], data[:, 2]
+
+data1 = np.genfromtxt("D:/kedaireka/code_ert/pygimli/LR_1.dat", converters={2: safe_float})
+
+# Assuming your data has three columns, unpack them into x, z, and r
+x1, z1, r1 = data1[:, 0], data1[:, 1], data1[:, 2]
+
+data2 = np.genfromtxt("D:/kedaireka/code_ert/pygimli/LR_2.dat", converters={2: safe_float})
+
+# Assuming your data has three columns, unpack them into x, z, and r
+x2, z2, r2 = data2[:, 0], data2[:, 1], data2[:, 2]
+
+data3 = np.genfromtxt("D:/kedaireka/code_ert/pygimli/LR_3.dat", converters={2: safe_float})
+
+# Assuming your data has three columns, unpack them into x, z, and r
+x3, z3, r3 = data3[:, 0], data3[:, 1], data3[:, 2]
+
+data4 = np.genfromtxt("D:/kedaireka/code_ert/pygimli/LR_4.dat", converters={2: safe_float})
+
+# Assuming your data has three columns, unpack them into x, z, and r
+x4, z4, r4 = data4[:, 0], data4[:, 1], data4[:, 2]
+
+data5 = np.genfromtxt("D:/kedaireka/code_ert/pygimli/LR_5.dat", converters={2: safe_float})
+
+# Assuming your data has three columns, unpack them into x, z, and r
+x5, z5, r5 = data5[:, 0], data5[:, 1], data5[:, 2]
+
+# # Create a single figure with two subplots
+# fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+# # Plot the first data in the first subplot
+# ax1.semilogx(r, z, "*-")
+# ax1.set_xlabel(r"$\rho$ ($\Omega$m)")
+# ax1.set_ylabel("depth (m)")
+# ax1.grid(True)
+# ax1.set_title("Data 1")
+
+# # Plot the second data in the second subplot
+# ax2.semilogx(r1, z1, "*-")
+# ax2.set_xlabel(r"$\rho$ ($\Omega$m)")
+# ax2.set_ylabel("depth (m)")
+# ax2.grid(True)
+# ax2.set_title("Data 2")
+
+# plt.tight_layout()  # Ensure proper spacing between subplots
+# plt.show()
+
+#%%
+
+ERTdata = ert.load("D:/kedaireka/code_ert/pygimli/synthetic_body.dat", verbose=True)
+print(ERTdata)
+ax, cb = ert.show(ERTdata)
+
+#%%
+
+ERTdata["k"] = ert.geometricFactors(ERTdata)
+ERTdata["err"] = ert.estimateError(ERTdata, relativeError=0.01, absoluteUError=1e-6)
+mgr = ert.ERTManager(ERTdata, verbose=True)
+mgr.invert(lam=20, verbose=True, paraDepth=70, paraMaxCellSize=5)
+
+kw = dict(cMin=10, cMax=1000, logScale=True, cMap="Spectral_r",
+          xlabel="x (m)", ylabel="y (m)")
+ax, cb = mgr.showResult(**kw)
+
+zz1 = np.abs(z1)
+iz1 = np.argsort(zz1)
+thk1 = np.hstack([0, np.diff(zz1[iz1])])
+draw1DColumn(ax, x=x1[0], val=r1[iz1], thk=thk1, width=4, **kw)
+ax.grid(True)
+
+zz2 = np.abs(z2)
+iz2 = np.argsort(zz2)
+thk2 = np.hstack([0, np.diff(zz2[iz2])])
+draw1DColumn(ax, x=x2[0], val=r2[iz2], thk=thk2, width=4, **kw)
+ax.grid(True)
+
+zz3 = np.abs(z3)
+iz3 = np.argsort(zz3)
+thk3 = np.hstack([0, np.diff(zz3[iz3])])
+draw1DColumn(ax, x=x3[0], val=r3[iz3], thk=thk3, width=4, **kw)
+ax.grid(True)
+
+zz4 = np.abs(z4)
+iz4 = np.argsort(zz4)
+thk4 = np.hstack([0, np.diff(zz4[iz4])])
+draw1DColumn(ax, x=x4[0], val=r4[iz4], thk=thk4, width=4, **kw)
+ax.grid(True)
+
+zz5 = np.abs(z5)
+iz5 = np.argsort(zz5)
+thk5 = np.hstack([0, np.diff(zz5[iz5])])
+draw1DColumn(ax, x=x5[0], val=r5[iz5], thk=thk5, width=4, **kw)
+ax.grid(True)
+
+#%%
+
+posVec = [pg.Pos(pos) for pos in zip(x, z)]
+para = pg.Mesh(mgr.paraDomain)  # make a copy
+para.setCellMarkers(pg.IVector(para.cellCount()))
+fopDP = PriorModelling(para, posVec)
+
+#%%
+
+# res1 = fopDP(mgr.model)
+
+# for xpos in np.unique(x):
+#     plt.plot(r[x==xpos], z[x==xpos], "bx")
+#     plt.plot(res1[x==xpos], z[x==xpos], "r-")
+#%%
+# fig, ax = plt.subplots()
+# ax.semilogx(r, z, label="borehole")
+# res1 = fopDP(mgr.model)
+# res1.save('res1.dat')
+# ax.semilogx(res1, z, label="ERT")
+# ax.set_xlabel(r"$\rho$ ($\Omega$m)")
+# ax.set_ylabel("depth (m)")
+# ax.grid(True)
+# ax.legend()
+
+#%%
+
+mgr.inv.setRegularization(zWeight=0.2)
+mgr.invert()
+ax, cb = mgr.showResult(**kw)
+draw1DColumn(ax, x=x1[0], val=r1[iz1], thk=thk1, width=4, **kw)
+draw1DColumn(ax, x=x3[0], val=r3[iz3], thk=thk3, width=4, **kw)
+draw1DColumn(ax, x=x5[0], val=r5[iz5], thk=thk5, width=4, **kw)
+draw1DColumn(ax, x=x2[0], val=r2[iz2], thk=thk2, width=4, **kw)
+draw1DColumn(ax, x=x4[0], val=r4[iz4], thk=thk4, width=4, **kw)
+res2 = fopDP(mgr.model)
+
+#%%
+
+mgr.inv.setRegularization(2, correlationLengths=[50, 5])
+mgr.invert()
+ax, cb = mgr.showResult(**kw)
+draw1DColumn(ax, x=x1[0], val=r1[iz1], thk=thk1, width=4, **kw)
+draw1DColumn(ax, x=x5[0], val=r5[iz5], thk=thk5, width=4, **kw)
+draw1DColumn(ax, x=x3[0], val=r3[iz3], thk=thk3, width=4, **kw)
+draw1DColumn(ax, x=x2[0], val=r2[iz2], thk=thk2, width=4, **kw)
+draw1DColumn(ax, x=x4[0], val=r4[iz4], thk=thk4, width=4, **kw)
+res3 = fopDP(mgr.model)
+
+#%%
+
+# fig, ax = plt.subplots()
+# ax.semilogx(r, z, label="borehole")
+# ax.semilogx(res1, z, label="ERT smooth")
+# ax.semilogx(res2, z, label="ERT aniso")
+# ax.semilogx(res3, z, label="ERT geostat")
+# ax.set_xlabel(r"$\rho$ ($\Omega$m)")
+# ax.set_ylabel("depth (m)")
+# ax.grid()
+# ax.legend()
+
+#%%
+
+inv = pg.Inversion(fop=fopDP, verbose=True)
+inv.mesh = para
+tLog = pg.trans.TransLog()
+inv.modelTrans = tLog
+inv.dataTrans = tLog
+# inv.setRegularization(zWeight=0.2)
+inv.setRegularization(correlationLengths=[50, 5])
+rError = np.ones_like(r)*0.1
+model = inv.run(r, rError)
+ax, cb = pg.show(para, model, **kw)
+draw1DColumn(ax, x=x1[0], val=r1[iz1], thk=thk1, width=4, **kw)
+draw1DColumn(ax, x=x5[0], val=r5[iz5], thk=thk5, width=4, **kw)
+draw1DColumn(ax, x=x3[0], val=r3[iz3], thk=thk3, width=4, **kw)
+draw1DColumn(ax, x=x2[0], val=r2[iz2], thk=thk2, width=4, **kw)
+draw1DColumn(ax, x=x4[0], val=r4[iz4], thk=thk4, width=4, **kw)
+#%%
+
+# fopERT = ert.ERTModelling()
+# fopERT.setMesh(mesh)
+# fopERT.setData(data) # not necessary as done by JointModelling
+# fopJoint = JointModelling([fopERT, fopDP])
+fopJoint = JointModelling([mgr.fop, fopDP])
+# fopJoint.setMesh(para)
+fopJoint.setData([ERTdata, pg.Vector(r)])  # needs to have .size() attribute!
+
+model = pg.Vector(para.cellCount(), 100)
+response = fopJoint(model)
+respERT = response[:ERTdata.size()]
+respDP = response[ERTdata.size():]
+print(respDP)
+
+# test Jacobian
+fopJoint.createJacobian(model)  # works
+J = fopJoint.jacobian()
+print(type(J))  # wrong type
+
+ax, cb = pg.show(J)
+print(J.mat(0))
+ax, cb = pg.show(J.mat(1), markersize=4)
+
+#%%
+
+dataVec = np.concatenate((ERTdata["rhoa"], r))
+errorVec = np.concatenate((ERTdata["err"], rError))
+inv = pg.Inversion(fop=fopJoint, verbose=True)
+transLog = pg.trans.TransLog()
+inv.modelTrans = transLog
+inv.dataTrans = transLog
+inv.run(dataVec, errorVec, startModel=model)
+ax, cb = pg.show(para, inv.model, **kw)
+draw1DColumn(ax, x=x1[0], val=r1[iz1], thk=thk1, width=4, **kw)
+draw1DColumn(ax, x=x5[0], val=r5[iz5], thk=thk5, width=4, **kw)
+draw1DColumn(ax, x=x3[0], val=r3[iz3], thk=thk3, width=4, **kw)
+draw1DColumn(ax, x=x2[0], val=r2[iz2], thk=thk2, width=4, **kw)
+draw1DColumn(ax, x=x4[0], val=r4[iz4], thk=thk4, width=4, **kw)
+
+#%%
+
+inv.setRegularization(2, correlationLengths=[50, 5])
+model = inv.run(dataVec, errorVec, startModel=model)
+ax, cb = pg.show(para, model, **kw)
+draw1DColumn(ax, x=x1[0], val=r1[iz1], thk=thk1, width=4, **kw)
+draw1DColumn(ax, x=x5[0], val=r5[iz5], thk=thk5, width=4, **kw)
+draw1DColumn(ax, x=x3[0], val=r3[iz3], thk=thk3, width=4, **kw)
+draw1DColumn(ax, x=x2[0], val=r2[iz2], thk=thk2, width=4, **kw)
+draw1DColumn(ax, x=x4[0], val=r4[iz4], thk=thk4, width=4, **kw)
+
+#%%
+
+respERT = inv.response[:ERTdata.size()]
+misfit = - respERT / ERTdata["rhoa"] * 100 + 100
+# ax, cb = ert.show(data, misfit, cMap="bwr", cMin=-5, cMax=5)
+#model.save('jointInv.dat')
+
+#%%
+
+# respDP = inv.response[data.size():]
+# fig, ax = plt.subplots()
+# ax.semilogx(r, z, label="borehole")
+# # resMesh = pg.interpolate(srcMesh=para, inVec=inv.model, destPos=posVec)
+# # ax.semilogx(resMesh, z, label="ERT+DP")
+# ax.semilogx(respDP, z, label="response")
+# ax.grid(True)
+# ax.legend()
