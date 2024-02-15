@@ -17,7 +17,8 @@ right = 100
 depth = 30
 
 world = mt.createWorld(start=[left, 0], end=[right, -depth],
-                       layers=[-5, -15], worldMarker=True)
+                       layers=[-5, -15], 
+                       worldMarker=True)
 pg.show(world)
 
 # %%
@@ -95,35 +96,23 @@ inv2 = mgr2.invert(mesh=mesh2, lam=100, verbose=True)
 mgr2.showResultAndFit(cMap='jet')
 
 # %%
-# Inversion using structured grid
-# You can also provide your own mesh (e.g., a structured grid if you like them)
-# Note, that x and y coordinates needs to be in ascending order to ensure that
-# all the cells in the grid have the correct orientation, i.e., all cells need
-# to be numbered counter-clockwise and the boundary normal directions need to
-# point outside.
-yDevide = 1.0 - np.logspace(np.log10(1.0), np.log10(depth),31 )
-xDevide = np.linspace(start=left, stop=right, num=100)
-inversionDomain = pg.createGrid(x=xDevide,
-                                y=yDevide[::-1],
-                                marker=2)
-pg.show(inversionDomain)
-# Inversion with custom mesh
-# --------------------------
-# The inversion domain for ERT problems needs a boundary that represents the
-# far regions in the subsurface of the halfspace.
-# Give a cell marker lower than the marker for the inversion region, the lowest
-# cell marker in the mesh will be the inversion boundary region by default.
-grid = pg.meshtools.appendTriangleBoundary(inversionDomain, marker=1,
-                                           xbound=50, ybound=50)
-pg.show(grid, markers=True)
-# %%
+# Inversion using three-layer based mesh
+world3 = mt.createWorld(start=[left, 0], end=[right, -depth], 
+                        # layers=[-5, -15],
+                        worldMarker=True)
+body = mt.createPolygon([(0,-5),(100,-5),(100,-15),(0,-15)],isClosed=True, marker=2)
+geo = world3 + body
+mesh3 = mt.createMesh(geo,
+                      area=1,
+                      quality=33)    # Quality mesh generation with no angles smaller than X degrees
+pg.show(mesh3, markers=True)
+# %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr3 = ert.ERTManager(data)
-inv3 = mgr3.invert(mesh=grid, lam=100, verbose=True)
+# Run the inversion with the preset data. The Inversion mesh will be created
+# with default settings.
+inv3 = mgr3.invert(mesh=mesh3, lam=100, verbose=True)
 mgr3.showResultAndFit(cMap='jet')
-
-
-
 
 
 # %%
@@ -133,3 +122,31 @@ pg.show(mesh, rhomap, ax=ax1, hold=True, cMap="jet", logScale=True, label='Resis
         orientation="vertical", cMin=50, cMax=150)
 mgr2.showResult(ax=ax2, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
 mgr3.showResult(ax=ax3, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
+
+# %%
+# # Inversion using structured grid
+# # You can also provide your own mesh (e.g., a structured grid if you like them)
+# # Note, that x and y coordinates needs to be in ascending order to ensure that
+# # all the cells in the grid have the correct orientation, i.e., all cells need
+# # to be numbered counter-clockwise and the boundary normal directions need to
+# # point outside.
+# yDevide = 1.0 - np.logspace(np.log10(1.0), np.log10(depth),31 )
+# xDevide = np.linspace(start=left, stop=right, num=100)
+# inversionDomain = pg.createGrid(x=xDevide,
+#                                 y=yDevide[::-1],
+#                                 marker=2)
+# pg.show(inversionDomain)
+# # Inversion with custom mesh
+# # --------------------------
+# # The inversion domain for ERT problems needs a boundary that represents the
+# # far regions in the subsurface of the halfspace.
+# # Give a cell marker lower than the marker for the inversion region, the lowest
+# # cell marker in the mesh will be the inversion boundary region by default.
+# grid = pg.meshtools.appendTriangleBoundary(inversionDomain, marker=1,
+#                                            xbound=50, ybound=50)
+# pg.show(grid, markers=True)
+# # %%
+# # Creat the ERT Manager
+# mgr3 = ert.ERTManager(data)
+# inv3 = mgr3.invert(mesh=grid, lam=100, verbose=True)
+# mgr3.showResultAndFit(cMap='jet')
