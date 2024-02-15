@@ -6,7 +6,7 @@ import numpy as np
 import pygimli as pg
 import pygimli.meshtools as mt
 from pygimli.physics import ert
-plt.rcParams["font.family"] = "Book Antiqua"
+plt.rcParams["font.family"] = 'Times New Roman'#"Microsoft Sans Serif"
 # %%
 # Geometry definition
 # Create geometry definition for the modelling domain. 
@@ -21,7 +21,6 @@ world = mt.createWorld(start=[left, 0], end=[right, -depth],
                        worldMarker=True)
 pg.show(world)
 
-# %%
 # Synthetic data generation
 # Create a Dipole Dipole ('dd') measuring scheme with 21 electrodes.
 scheme = ert.createData(elecs=np.linspace(start=0, stop=100, num=21),
@@ -34,13 +33,13 @@ scheme = ert.createData(elecs=np.linspace(start=0, stop=100, num=21),
 for p in scheme.sensors():
     world.createNode(p)
     world.createNode(p - [0, 0.1])
-# %%
+
 # Create a mesh for the finite element modelling with appropriate mesh quality.
 mesh = mt.createMesh(world, 
                      area=10,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 pg.show(mesh,markers=True)
-# %%
+
 # Create a map to set resistivity values in the appropriate regions
 # [[regionNumber, resistivity], [regionNumber, resistivity], [...]
 rhomap = [[1, 50.],
@@ -56,7 +55,7 @@ mesh.save("mesh.bms") # can be load by pg.load()
 # grid = pg.meshtools.appendTriangleBoundary(mesh, marker=4,
 #                                            xbound=50, ybound=50)
 # pg.show(grid,markers=True)
-# %%
+
 # Perform the modelling with the mesh and the measuring scheme itself
 # and return a data container with apparent resistivity values,
 # geometric factors and estimated data errors specified by the noise setting.
@@ -83,7 +82,8 @@ world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
 mesh2 = mt.createMesh(world2, 
                      area=1,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
-# Add triangleboundary as inversiondomain
+pg.show(mesh2,markers=True)
+# # Add triangleboundary as inversiondomain
 # grid2 = pg.meshtools.appendTriangleBoundary(mesh2, marker=2,
 #                                            xbound=50, ybound=50)
 # pg.show(grid2,markers=True)
@@ -97,15 +97,16 @@ mgr2.showResultAndFit(cMap='jet')
 
 # %%
 # Inversion using three-layer based mesh
-world3 = mt.createWorld(start=[left, 0], end=[right, -depth], 
-                        # layers=[-5, -15],
-                        worldMarker=True)
-body = mt.createPolygon([(0,-5),(100,-5),(100,-15),(0,-15)],isClosed=True, marker=2)
-geo = world3 + body
-mesh3 = mt.createMesh(geo,
-                      area=1,
+plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.5)
+interface1 = mt.createLine(start=[40, -5], end=[60, -5], marker=1)
+interface2 = mt.createLine(start=[40, -15], end=[60, -15], marker=2)
+plc = interface1 + interface2 + plc
+pg.show(plc)
+# %%
+mesh3 = mt.createMesh(plc,
+                      area=2.5,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
-pg.show(mesh3, markers=True)
+pg.show(mesh3)
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr3 = ert.ERTManager(data)
@@ -122,7 +123,7 @@ pg.show(mesh, rhomap, ax=ax1, hold=True, cMap="jet", logScale=True, label='Resis
         orientation="vertical", cMin=50, cMax=150)
 mgr2.showResult(ax=ax2, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
 mgr3.showResult(ax=ax3, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
-
+ax3.set_xlim(0, 100)
 # %%
 # # Inversion using structured grid
 # # You can also provide your own mesh (e.g., a structured grid if you like them)
