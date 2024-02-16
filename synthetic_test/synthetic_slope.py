@@ -7,38 +7,46 @@ import pygimli as pg
 import pygimli.meshtools as mt
 from pygimli.physics import ert
 plt.rcParams["font.family"] = 'Times New Roman'#"Microsoft Sans Serif"
+
 # %%
-# Geometry definition
-# Create geometry definition for the modelling domain. 
-# ``worldMarker=True`` indicates the default boundary conditions for the ERT
-# dimensions of the world
-left = 0
-right = 100
-depth = 30
+c1 = mt.createCircle(pos=(0, 310),radius=200, start=1.5*np.pi, end=1.7*np.pi,isClosed=True, marker = 2, area=1)
+ax,_ = pg.show(c1)
 
-world = mt.createWorld(start=[left, 0], end=[right, -depth],
-                       layers=[-5, -15], 
-                       worldMarker=True)
-pg.show(world)
+# %% Model setup
+# We start by creating a three-layered slope (The model is taken from the BSc
+# thesis of Constanze Reinken conducted at the University of Bonn).
 
+slope = mt.createPolygon([[0.0, 80], [0.0, 110], 
+                          [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
+                          [c1.node(12).pos()[0], 80]],
+                          isClosed=True)
+
+# orig_x = 20
+# orig_y = 210
+# radius = 90
+# theta = np.linspace(1.5*np.pi, 1.75*np.pi, 100)  # Angle values from 0 to 2*pi
+# circle_x = orig_x + radius * np.cos(theta)
+# circle_y = orig_y + radius * np.sin(theta)
+
+# # concate x_rotated, y_rotated horizontally
+# slip_surface = np.column_stack((circle_x, circle_y))
+
+# interface = mt.createPolygon(slip_surface )
+geom = slope + c1
+# ax, _ = pg.show(geom)
+
+mesh = mt.createMesh(geom,area=5, quality=33)
+pg.show(mesh, markers=True, showMesh=True)
+
+# %%
 # Synthetic data generation
-# Create a Dipole Dipole ('dd') measuring scheme with 21 electrodes.
-scheme = ert.createData(elecs=np.linspace(start=0, stop=100, num=21),
+# Create a Dipole Dipole ('dd') measuring scheme with 25 electrodes.
+electrode_x = np.linspace(start=0, stop=c1.node(12).pos()[0], num=25)
+electrode_y = np.linspace(start=110, stop=c1.node(12).pos()[1], num=25)
+scheme = ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
                            schemeName='dd')
 
-# Put all electrode (aka sensors) positions into the PLC to enforce mesh
-# refinement. Due to experience, its convenient to add further refinement
-# nodes in a distance of 10% of electrode spacing to achieve sufficient
-# numerical accuracy.
-# for p in scheme.sensors():
-#     world.createNode(p)
-#     world.createNode(p - [0, 0.1])
-
-# Create a mesh for the finite element modelling with appropriate mesh quality.
-mesh = mt.createMesh(world, 
-                     area=1,
-                     quality=33)    # Quality mesh generation with no angles smaller than X degrees 
-pg.show(mesh,markers=True)
+# %%
 
 # Create a map to set resistivity values in the appropriate regions
 # [[regionNumber, resistivity], [regionNumber, resistivity], [...]
@@ -47,9 +55,7 @@ rhomap = [[1, 50.],
           [3, 150.]]
 
 # Take a look at the mesh and the resistivity distribution
-pg.show(mesh, 
-        # data=rhomap, cMap='jet', label=pg.unit('res'), 
-        showMesh=True)
+pg.show(mesh, data=rhomap, cMap='jet', label=pg.unit('res'), showMesh=True)
 # save the mesh to binary file
 mesh.save("mesh.bms") # can be load by pg.load()
 # %%
