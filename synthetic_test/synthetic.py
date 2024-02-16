@@ -77,10 +77,10 @@ pg.show(data,cMap='jet')
 data.save('simple.dat')
 
 
-# %%
+# %% Inversion using normal mesh (no prior layer scheme)
 world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
 mesh2 = mt.createMesh(world2, 
-                     area=1,
+                     area=5,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 pg.show(mesh2,markers=True)
 # # Add triangleboundary as inversiondomain
@@ -95,16 +95,17 @@ mgr2 = ert.ERTManager(data)
 inv2 = mgr2.invert(mesh=mesh2, lam=100, verbose=True)
 mgr2.showResultAndFit(cMap='jet')
 
-# %%
-# Inversion using three-layer based mesh
+# %% Inversion using three-layer based mesh
 plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.5)
-interface1 = mt.createLine(start=[40, -5], end=[60, -5], marker=1)
-interface2 = mt.createLine(start=[40, -15], end=[60, -15], marker=2)
+left_edge = 40
+right_edge = 60
+interface1 = mt.createLine(start=[left_edge, -5 ], end=[right_edge, -5] )
+interface2 = mt.createLine(start=[left_edge, -15], end=[right_edge, -15])
 plc = interface1 + interface2 + plc
-pg.show(plc)
-# %%
+pg.show(plc, markers=True)
+
 mesh3 = mt.createMesh(plc,
-                      area=2.5,
+                      area=5,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
 pg.show(mesh3)
 # %% Inversion with the ERTManager
@@ -114,7 +115,6 @@ mgr3 = ert.ERTManager(data)
 # with default settings.
 inv3 = mgr3.invert(mesh=mesh3, lam=100, verbose=True)
 mgr3.showResultAndFit(cMap='jet')
-
 
 # %%
 # Comparesion of the results
