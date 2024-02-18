@@ -84,7 +84,7 @@ world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
 mesh2 = mt.createMesh(world2, 
                      area=5,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
-pg.show(mesh2,markers=True)
+pg.show(mesh2)
 # # Add triangleboundary as inversiondomain
 # grid2 = pg.meshtools.appendTriangleBoundary(mesh2, marker=2,
 #                                            xbound=50, ybound=50)
@@ -99,8 +99,8 @@ mgr2.showResultAndFit(cMap='jet')
 
 # %% Inversion using three-layer based mesh
 plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.5)
-left_edge = 40
-right_edge = 60
+left_edge = 30
+right_edge = 70
 interface1 = mt.createLine(start=[left_edge, -5 ], end=[right_edge, -5] )
 interface2 = mt.createLine(start=[left_edge, -15], end=[right_edge, -15])
 plc = interface1 + interface2 + plc
@@ -109,7 +109,9 @@ pg.show(plc, markers=True)
 mesh3 = mt.createMesh(plc,
                       area=5,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
-pg.show(mesh3)
+ax,_ = pg.show(mesh3)
+ax.set_xlim(0, 100)
+ax.set_ylim(-30, 0)
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr3 = ert.ERTManager(data)
@@ -126,6 +128,56 @@ pg.show(mesh, rhomap, ax=ax1, hold=True, cMap="jet", logScale=True, label='Resis
 mgr2.showResult(ax=ax2, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
 mgr3.showResult(ax=ax3, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
 ax3.set_xlim(0, 100)
+
+# %%
+# Comparesion of the results by the residual profile
+# Re-interpolate the grid
+mesh_x = np.linspace(0,100,200)
+mesh_y = np.linspace(-30,0,50)
+grid = pg.createGrid(x=mesh_x,y=mesh_y )
+
+# Creat a pg RVector with the length of the cell of mesh and the value of rhomap
+rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )#pg.Vector(mesh.cellCount())
+# Distinguish the region of the mesh and insert the value of rhomap
+rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
+
+ax,cb = pg.viewer.showMesh(grid,data=rho_grid,
+                            label='Resistivity $\Omega m$',
+                            logScale=True,cMap='jet',cMin=50,cMax=150,
+                            xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
+ax.set_title('Original resistivity model profile')
+
+# normal grid 
+rho_normal_grid = pg.interpolate(mesh2, mgr2.model, grid.cellCenters())
+# ax,cb = pg.viewer.showMesh(grid,data=rho_normal_grid,
+#                             label='Resistivity $\Omega m$',
+#                             logScale=True,cMap='jet',cMin=50,cMax=150,
+#                             xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
+# ax.set_title('Normal mesh inverted resistivity profile')
+residual_normal_grid = rho_grid - rho_normal_grid
+ax,cb = pg.viewer.showMesh(grid,data=residual_normal_grid,
+                            label='Resistivity residual $\Omega m$',
+                        #     logScale=True, 
+                            cMap='RdBu', 
+                            cMin=-30,cMax=30,
+                            xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
+ax.set_title('Normal mesh resistivity residual profile')
+
+# structured constrained grid 
+rho_layer_grid = pg.interpolate(mgr3.paraDomain, mgr3.model, grid.cellCenters())
+# ax,cb = pg.viewer.showMesh(grid,data=rho_layer_grid,
+#                             label='Resistivity $\Omega m$',
+#                             logScale=True,cMap='jet',cMin=50,cMax=150,
+#                             xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
+# ax.set_title('Structured constrained inverted resistivity profile')
+residual_layer_grid = rho_grid - rho_layer_grid
+ax,cb = pg.viewer.showMesh(grid,data=residual_layer_grid,
+                            label='Resistivity residual $\Omega m$',
+                        #     logScale=True, 
+                            cMap='RdBu', 
+                            cMin=-30,cMax=30,
+                            xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
+ax.set_title('Layered mesh resistivity residual profile')
 # %%
 # # Inversion using structured grid
 # # You can also provide your own mesh (e.g., a structured grid if you like them)
