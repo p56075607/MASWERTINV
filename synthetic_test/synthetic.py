@@ -54,11 +54,6 @@ pg.show(mesh,
 # save the mesh to binary file
 mesh.save("mesh.bms") # can be load by pg.load()
 # %%
-# Add triangleboundary as inversiondomain
-# grid = pg.meshtools.appendTriangleBoundary(mesh, marker=4,
-#                                            xbound=50, ybound=50)
-# pg.show(grid,markers=True)
-
 # Perform the modelling with the mesh and the measuring scheme itself
 # and return a data container with apparent resistivity values,
 # geometric factors and estimated data errors specified by the noise setting.
@@ -86,10 +81,6 @@ mesh2 = mt.createMesh(world2,
                      area=5,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 pg.show(mesh2)
-# # Add triangleboundary as inversiondomain
-# grid2 = pg.meshtools.appendTriangleBoundary(mesh2, marker=2,
-#                                            xbound=50, ybound=50)
-# pg.show(grid2,markers=True)
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr2 = ert.ERTManager(data)
@@ -136,10 +127,9 @@ ax3.set_xlim(0, 100)
 mesh_x = np.linspace(0,100,100)
 mesh_y = np.linspace(-30,0,60)
 grid = pg.createGrid(x=mesh_x,y=mesh_y )
-mesh_X, mesh_Y = np.meshgrid(mesh_x,mesh_y)
 
 # Creat a pg RVector with the length of the cell of mesh and the value of rhomap
-rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )#pg.Vector(mesh.cellCount())
+rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
 # Distinguish the region of the mesh and insert the value of rhomap
 rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
 
@@ -147,7 +137,7 @@ fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(16,8),con
 ax2.axis('off')
 # Subplot 1:Original resistivity model
 pg.viewer.showMesh(mesh, rhomap,ax=ax1,
-                    label='Resistivity $\Omega m$',
+                    label='Resistivity ($\Omega m$)',
                     logScale=True,cMap='jet',cMin=50,cMax=150,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
 ax1.set_title('Original resistivity model profile')
@@ -155,20 +145,23 @@ ax1.set_title('Original resistivity model profile')
 # Subplot 3:normal grid 
 rho_normal_grid = pg.interpolate(mesh2, mgr2.model, grid.cellCenters())
 pg.viewer.showMesh(grid,data=rho_normal_grid,ax=ax3,
-                    label='Resistivity $\Omega m$',
+                    label='Resistivity ($\Omega m$)',
                     logScale=True,cMap='jet',cMin=50,cMax=150,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
+ax3.set_title('Normal mesh inverted resistivity profile')
 
 # plot a triangle
 triangle_left = np.array([[left, -depth], [depth, -depth], [left,0], [left, -depth]])
 triangle_right = np.array([[right, -depth], [right-depth, -depth], [right,0], [right, depth]])
 ax3.add_patch(plt.Polygon(triangle_left,color='white'))
 ax3.add_patch(plt.Polygon(triangle_right,color='white'))
+ax3.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
+ax3.set_ylim(-30, 0)
 
 # Subplot 5:structured constrained grid 
 rho_layer_grid = pg.interpolate(mgr3.paraDomain, mgr3.model, grid.cellCenters())
 pg.viewer.showMesh(grid,data=rho_layer_grid,ax=ax5,
-                            label='Resistivity $\Omega m$',
+                            label='Resistivity ($\Omega m$)',
                             logScale=True,cMap='jet',cMin=50,cMax=150,
                             xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
 ax5.set_title('Structured constrained inverted resistivity profile')
@@ -176,10 +169,11 @@ ax5.add_patch(plt.Polygon(triangle_left,color='white'))
 ax5.add_patch(plt.Polygon(triangle_right,color='white'))
 pg.show(interface1,ax=ax5)
 pg.show(interface2,ax=ax5)
+ax5.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
 ax5.set_ylim(-30, 0)
 
 # Calculate the resistivity relative difference
-# Subplot 5:Normal mesh resistivity residual
+# Subplot 4:Normal mesh resistivity residual
 residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
 pg.viewer.showMesh(grid,data=residual_normal_grid,ax=ax4,
                     label='Relative resistivity difference (%)',
@@ -190,6 +184,8 @@ pg.viewer.showMesh(grid,data=residual_normal_grid,ax=ax4,
 ax4.set_title('Normal mesh resistivity residual profile')
 ax4.add_patch(plt.Polygon(triangle_left,color='white'))
 ax4.add_patch(plt.Polygon(triangle_right,color='white'))
+ax4.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
+ax4.set_ylim(-30, 0)
 
 # Subplot 6:Layered mesh resistivity residual
 residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
@@ -198,20 +194,23 @@ pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax6,
                 #     logScale=True, 
                     cMap='RdBu_r', 
                     cMin=-35,cMax=35,
-                    xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
+                    xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
+                    )
 ax6.set_title('Layered mesh resistivity residual profile')
 ax6.add_patch(plt.Polygon(triangle_left,color='white'))
 ax6.add_patch(plt.Polygon(triangle_right,color='white'))
 pg.show(interface1,ax=ax6)
 pg.show(interface2,ax=ax6)
+ax6.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
 ax6.set_ylim(-30, 0)
 # %%
 # # Plot profile using contour
+# mesh_X, mesh_Y = np.meshgrid(mesh_x,mesh_y)
 # fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(16,8),constrained_layout=True)
 # ax2.axis('off')
 # # Subplot 1:Original resistivity model
 # pg.viewer.showMesh(mesh, rhomap,ax=ax1,
-#                     label='Resistivity $\Omega m$',
+#                     label='Resistivity ($\Omega m$)',
 #                     logScale=True,cMap='jet',cMin=50,cMax=150,
 #                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
 # ax1.set_title('Original resistivity model profile')
