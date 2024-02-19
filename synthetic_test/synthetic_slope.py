@@ -8,11 +8,11 @@ import pygimli.meshtools as mt
 from pygimli.physics import ert
 plt.rcParams["font.family"] = 'Times New Roman'#"Microsoft Sans Serif"
 
-# %%
+# %% Model setup
 c1 = mt.createCircle(pos=(0, 310),radius=200, start=1.5*np.pi, end=1.7*np.pi,isClosed=True, marker = 2, area=1)
 ax,_ = pg.show(c1)
 
-# %% Model setup
+
 # We start by creating a three-layered slope (The model is taken from the BSc
 # thesis of Constanze Reinken conducted at the University of Bonn).
 
@@ -43,21 +43,21 @@ pg.show(mesh, markers=True, showMesh=True)
 # Create a Dipole Dipole ('dd') measuring scheme with 25 electrodes.
 electrode_x = np.linspace(start=0, stop=c1.node(12).pos()[0], num=25)
 electrode_y = np.linspace(start=110, stop=c1.node(12).pos()[1], num=25)
+plt.scatter(electrode_x, electrode_y)
+# %%
 scheme = ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
                            schemeName='dd')
 
 # %%
-
 # Create a map to set resistivity values in the appropriate regions
 # [[regionNumber, resistivity], [regionNumber, resistivity], [...]
-rhomap = [[1, 50.],
-          [2, 100.],
-          [3, 150.]]
+rhomap = [[1, 150.],
+          [2, 50.]]
 
 # Take a look at the mesh and the resistivity distribution
 pg.show(mesh, data=rhomap, cMap='jet', label=pg.unit('res'), showMesh=True)
 # save the mesh to binary file
-mesh.save("mesh.bms") # can be load by pg.load()
+mesh.save("mesh_slope.bms") # can be load by pg.load()
 # %%
 # Add triangleboundary as inversiondomain
 # grid = pg.meshtools.appendTriangleBoundary(mesh, marker=4,
@@ -82,12 +82,15 @@ pg.info('Selected data noise %(min/max)', min(data['err'])*100, max(data['err'])
 
 pg.show(data,cMap='jet')
 # save the data for further use
-data.save('simple.dat')
+data.save('slope.dat')
 
 
 # %% Inversion using normal mesh (no prior layer scheme)
-world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
-mesh2 = mt.createMesh(world2, 
+# slope2 = mt.createPolygon([[30, 80], [0.0, 110], 
+#                           [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
+#                           [c1.node(12).pos()[0]-20, 100]],
+#                           isClosed=True)
+mesh2 = mt.createMesh(slope, 
                      area=5,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 pg.show(mesh2,markers=True)
@@ -103,19 +106,14 @@ mgr2 = ert.ERTManager(data)
 inv2 = mgr2.invert(mesh=mesh2, lam=100, verbose=True)
 mgr2.showResultAndFit(cMap='jet')
 
-# %% Inversion using three-layer based mesh
-plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.5)
-left_edge = 40
-right_edge = 60
-interface1 = mt.createLine(start=[left_edge, -5 ], end=[right_edge, -5] )
-interface2 = mt.createLine(start=[left_edge, -15], end=[right_edge, -15])
-plc = interface1 + interface2 + plc
-pg.show(plc, markers=True)
+# %% Inversion using two-layer based mesh
+c2 = mt.createCircle(pos=(0, 310),radius=200, start=1.53*np.pi, end=1.67*np.pi,isClosed=False, marker = 1)
 
+plc = slope + c2
 mesh3 = mt.createMesh(plc,
                       area=5,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
-pg.show(mesh3)
+pg.show(mesh3, markers=True)
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr3 = ert.ERTManager(data)
@@ -131,31 +129,5 @@ pg.show(mesh, rhomap, ax=ax1, hold=True, cMap="jet", logScale=True, label='Resis
         orientation="vertical", cMin=50, cMax=150)
 mgr2.showResult(ax=ax2, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
 mgr3.showResult(ax=ax3, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
-ax3.set_xlim(0, 100)
+
 # %%
-# # Inversion using structured grid
-# # You can also provide your own mesh (e.g., a structured grid if you like them)
-# # Note, that x and y coordinates needs to be in ascending order to ensure that
-# # all the cells in the grid have the correct orientation, i.e., all cells need
-# # to be numbered counter-clockwise and the boundary normal directions need to
-# # point outside.
-# yDevide = 1.0 - np.logspace(np.log10(1.0), np.log10(depth),31 )
-# xDevide = np.linspace(start=left, stop=right, num=100)
-# inversionDomain = pg.createGrid(x=xDevide,
-#                                 y=yDevide[::-1],
-#                                 marker=2)
-# pg.show(inversionDomain)
-# # Inversion with custom mesh
-# # --------------------------
-# # The inversion domain for ERT problems needs a boundary that represents the
-# # far regions in the subsurface of the halfspace.
-# # Give a cell marker lower than the marker for the inversion region, the lowest
-# # cell marker in the mesh will be the inversion boundary region by default.
-# grid = pg.meshtools.appendTriangleBoundary(inversionDomain, marker=1,
-#                                            xbound=50, ybound=50)
-# pg.show(grid, markers=True)
-# # %%
-# # Creat the ERT Manager
-# mgr3 = ert.ERTManager(data)
-# inv3 = mgr3.invert(mesh=grid, lam=100, verbose=True)
-# mgr3.showResultAndFit(cMap='jet')
