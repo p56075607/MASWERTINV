@@ -123,7 +123,7 @@ pg.viewer.showMesh(mesh, rhomap,ax=ax1,
                     label='Resistivity ($\Omega m$)',
                     logScale=True,cMap='jet',cMin=50,cMax=150,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
-ax1.set_title('Original resistivity model profile')
+ax1.set_title('Original resistivity model profile',fontweight="bold", size=16)
 
 # Subplot 3:normal grid 
 rho_normal_grid = pg.interpolate(mesh2, mgr2.model, grid.cellCenters())
@@ -132,7 +132,7 @@ pg.viewer.showMesh(grid,data=rho_normal_grid,ax=ax3,
                     logScale=True,cMap='jet',cMin=50,cMax=150,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
 ax3.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
-ax3.set_title('Normal mesh inverted resistivity profile')
+ax3.set_title('Normal mesh inverted resistivity profile',fontweight="bold", size=16)
 # cut inversion domain and turn white outside
 white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100], 
                           [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
@@ -145,7 +145,7 @@ pg.viewer.showMesh(grid,data=rho_layer_grid,ax=ax5,
                     label='Resistivity ($\Omega m$)',
                     logScale=True,cMap='jet',cMin=50,cMax=150,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
-ax5.set_title('Structured constrained inverted resistivity profile')
+ax5.set_title('Structured constrained inverted resistivity profile',fontweight="bold", size=16)
 ax5.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
 # cut inversion domain and turn white outside
 ax5.add_patch(plt.Polygon(white_polygon,color='white'))
@@ -160,7 +160,7 @@ pg.viewer.showMesh(grid,data=residual_normal_grid,ax=ax4,
                     cMap='RdBu_r', 
                      cMin=-50,cMax=50,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
-ax4.set_title('Normal mesh resistivity residual profile')
+ax4.set_title('Normal mesh resistivity residual profile',fontweight="bold", size=16)
 ax4.add_patch(plt.Polygon(white_polygon,color='white'))
 ax4.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
 
@@ -173,7 +173,7 @@ pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax6,
                     cMin=-50,cMax=50,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
                     )
-ax6.set_title('Layered mesh resistivity residual profile')
+ax6.set_title('Structured constrained resistivity residual profile',fontweight="bold", size=16)
 ax6.add_patch(plt.Polygon(white_polygon,color='white'))
 ax6.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
 pg.show(c2,ax=ax6)
