@@ -181,7 +181,7 @@ pg.viewer.showMesh(grid,data=residual_normal_grid,ax=ax4,
                     cMap='RdBu_r', 
                     cMin=-35,cMax=35,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
-ax4.set_title('Normal mesh resistivity residual profile',fontweight="bold", size=16)
+ax4.set_title('Normal mesh resistivity difference profile',fontweight="bold", size=16)
 ax4.add_patch(plt.Polygon(triangle_left,color='white'))
 ax4.add_patch(plt.Polygon(triangle_right,color='white'))
 ax4.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
@@ -196,7 +196,7 @@ pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax6,
                     cMin=-35,cMax=35,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
                     )
-ax6.set_title('Structured constrained resistivity residual profile',fontweight="bold", size=16)
+ax6.set_title('Structured constrained resistivity difference profile',fontweight="bold", size=16)
 ax6.add_patch(plt.Polygon(triangle_left,color='white'))
 ax6.add_patch(plt.Polygon(triangle_right,color='white'))
 pg.show(interface1,ax=ax6)

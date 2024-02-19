@@ -138,6 +138,7 @@ white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100],
                           [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
                           [c1.node(12).pos()[0], 80],[0, 80]])
 ax3.add_patch(plt.Polygon(white_polygon,color='white'))
+ax3.plot(electrode_x, electrode_y, 'ko', markersize=2)
 
 # Subplot 5:structured constrained grid 
 rho_layer_grid = pg.interpolate(mgr3.paraDomain, mgr3.model, grid.cellCenters())
@@ -149,6 +150,7 @@ ax5.set_title('Structured constrained inverted resistivity profile',fontweight="
 ax5.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
 # cut inversion domain and turn white outside
 ax5.add_patch(plt.Polygon(white_polygon,color='white'))
+ax5.plot(electrode_x, electrode_y, 'ko', markersize=2)
 pg.show(c2,ax=ax5,linewidth=3)
 
 # Calculate the resistivity relative difference
@@ -160,9 +162,10 @@ pg.viewer.showMesh(grid,data=residual_normal_grid,ax=ax4,
                     cMap='RdBu_r', 
                      cMin=-50,cMax=50,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
-ax4.set_title('Normal mesh resistivity residual profile',fontweight="bold", size=16)
+ax4.set_title('Normal mesh resistivity difference profile',fontweight="bold", size=16)
 ax4.add_patch(plt.Polygon(white_polygon,color='white'))
 ax4.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
+ax4.plot(electrode_x, electrode_y,'ko',markersize=2)
 
 # Subplot 6:Layered mesh resistivity residual
 residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
@@ -173,7 +176,11 @@ pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax6,
                     cMin=-50,cMax=50,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
                     )
-ax6.set_title('Structured constrained resistivity residual profile',fontweight="bold", size=16)
+ax6.set_title('Structured constrained resistivity difference profile',fontweight="bold", size=16)
 ax6.add_patch(plt.Polygon(white_polygon,color='white'))
 ax6.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
+ax6.plot(electrode_x, electrode_y,'ko',markersize=2)
 pg.show(c2,ax=ax6)
+
+# %%
+fig.savefig('slope_compare.png', dpi=300, bbox_inches='tight')
