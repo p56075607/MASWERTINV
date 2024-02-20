@@ -22,7 +22,7 @@ slope = mt.createPolygon([[0.0, 80], [0.0, 110],
 geom = slope + c1
 # ax, _ = pg.show(geom)
 
-mesh = mt.createMesh(geom,area=5, quality=33)
+mesh = mt.createMesh(geom,area=1, quality=33)
 pg.show(mesh, markers=True, showMesh=True)
 
 # %%
@@ -69,7 +69,7 @@ data.save('slope.dat')
 
 # %% Inversion using normal mesh (no prior layer scheme)
 mesh2 = mt.createMesh(slope, 
-                     area=5,
+                     area=1,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 pg.show(mesh2,markers=True)
 # %% Inversion with the ERTManager
@@ -85,7 +85,7 @@ c2 = mt.createCircle(pos=(0, 310),radius=200, start=1.53*np.pi, end=1.67*np.pi,i
 
 plc = slope + c2
 mesh3 = mt.createMesh(plc,
-                      area=5,
+                      area=1,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
 pg.show(mesh3, markers=True)
 # %% Inversion with the ERTManager
@@ -127,7 +127,8 @@ ax1.set_title('Original resistivity model profile',fontweight="bold", size=16)
 
 # Subplot 3:normal grid 
 rho_normal_grid = pg.interpolate(mesh2, mgr2.model, grid.cellCenters())
-pg.viewer.showMesh(grid,data=rho_normal_grid,ax=ax3,
+pg.viewer.showMesh(mesh2, mgr2.model,#grid,data=rho_normal_grid,
+                   ax=ax3,
                     label='Resistivity ($\Omega m$)',
                     logScale=True,cMap='jet',cMin=50,cMax=150,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
@@ -142,7 +143,8 @@ ax3.plot(electrode_x, electrode_y, 'ko', markersize=2)
 
 # Subplot 5:structured constrained grid 
 rho_layer_grid = pg.interpolate(mgr3.paraDomain, mgr3.model, grid.cellCenters())
-pg.viewer.showMesh(grid,data=rho_layer_grid,ax=ax5,
+pg.viewer.showMesh(mgr3.paraDomain, mgr3.model,#grid,data=rho_layer_grid,
+                    ax=ax5,
                     label='Resistivity ($\Omega m$)',
                     logScale=True,cMap='jet',cMin=50,cMax=150,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
