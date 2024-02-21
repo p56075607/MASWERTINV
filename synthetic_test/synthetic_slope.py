@@ -2,6 +2,7 @@
 # Build a three-layer model for electrical resistivity tomography synthetic test using pygimli package
 import matplotlib.pyplot as plt
 import numpy as np
+from os.path import join
 
 import pygimli as pg
 import pygimli.meshtools as mt
@@ -30,19 +31,34 @@ pg.show(mesh, markers=True, showMesh=True)
 # Create a Dipole Dipole ('dd') measuring scheme with 25 electrodes.
 electrode_x = np.linspace(start=0, stop=c1.node(12).pos()[0], num=25)
 electrode_y = np.linspace(start=110, stop=c1.node(12).pos()[1], num=25)
-plt.scatter(electrode_x, electrode_y)
+# Plot the eletrode position
+ax, _ = pg.show(slope, markers=False, showMesh=False)
+ax.plot(electrode_x, electrode_y,'kv',label='Electrode')
+
+ax.set_xlim([0-3,c1.node(12).pos()[0]+3])
+ax.set_ylim([80,c1.node(12).pos()[1]+3])
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+ax.legend(loc='right')
+ax.set_aspect('equal')
+fig = ax.figure
+fig.savefig(join('results','slope_electrode.png'), dpi=300, bbox_inches='tight')
 # %%
 scheme = ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
                            schemeName='dd')
 
 # %%
 # Create a map to set resistivity values in the appropriate regions
-# [[regionNumber, resistivity], [regionNumber, resistivity], [...]
+# [[regionNumber, resistivity], [regionNumber, resist３ivity], [...]
 rhomap = [[1, 150.],
           [2, 50.]]
 
 # Take a look at the mesh and the resistivity distribution
-pg.show(mesh, data=rhomap, cMap='jet', label=pg.unit('res'), showMesh=True)
+ax, _ = pg.show(mesh, data=rhomap, cMap='jet', label=pg.unit('res'), showMesh=True)
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+fig = ax.figure
+fig.savefig(join('results','slope.png'), dpi=300, bbox_inches='tight')
 # save the mesh to binary file
 mesh.save("mesh_slope.bms") # can be load by pg.load()
 # %%
@@ -62,7 +78,11 @@ pg.info('The data contains:', data.dataMap().keys())
 pg.info('Simulated rhoa (min/max)', min(data['rhoa']), max(data['rhoa']))
 pg.info('Selected data noise %(min/max)', min(data['err'])*100, max(data['err'])*100)
 
-pg.show(data,cMap='jet')
+ax, _ = pg.show(data,cMap='jet')
+ax.set_xlabel('Distance (m)')
+ax.set_ylabel('Array type and \nElectrode separation (m)')
+fig = ax.figure
+fig.savefig(join('results','slope_data.png'), dpi=300, bbox_inches='tight',transparent=True)
 # save the data for further use
 data.save('slope.dat')
 
@@ -71,7 +91,11 @@ data.save('slope.dat')
 mesh2 = mt.createMesh(slope, 
                      area=1,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
-pg.show(mesh2,markers=True)
+ax,_ = pg.show(mesh2)
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+fig = ax.figure
+fig.savefig(join('results','slope_normal_mesh.png'), dpi=300, bbox_inches='tight',transparent=True)
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr2 = ert.ERTManager(data)
@@ -87,7 +111,11 @@ plc = slope + c2
 mesh3 = mt.createMesh(plc,
                       area=1,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
-pg.show(mesh3, markers=True)
+ax,_ = pg.show(mesh3)
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+fig = ax.figure
+fig.savefig(join('results','slope_layered_mesh.png'), dpi=300, bbox_inches='tight',transparent=True)
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr3 = ert.ERTManager(data)
@@ -184,5 +212,4 @@ ax6.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,col
 ax6.plot(electrode_x, electrode_y,'ko',markersize=2)
 pg.show(c2,ax=ax6)
 
-# %%
-fig.savefig('slope_compare.png', dpi=300, bbox_inches='tight')
+fig.savefig(join('results','slope_synthetic_compare.png'), dpi=300, bbox_inches='tight', transparent=True)

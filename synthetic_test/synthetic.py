@@ -108,7 +108,7 @@ ax,_ = pg.show(mesh2)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
-fig.savefig(join('results','electrode.png'), dpi=300, bbox_inches='tight')
+fig.savefig(join('results','normal_mesh.png'), dpi=300, bbox_inches='tight')
 
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
@@ -133,6 +133,10 @@ mesh3 = mt.createMesh(plc,
 ax,_ = pg.show(mesh3)
 ax.set_xlim(0, 100)
 ax.set_ylim(-30, 0)
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+fig = ax.figure
+fig.savefig(join('results','layered_mesh.png'), dpi=300, bbox_inches='tight')
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr3 = ert.ERTManager(data)
@@ -235,8 +239,8 @@ pg.show(interface2,ax=ax6)
 ax6.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
 ax6.set_ylim(-30, 0)
 
-# %%
-fig.savefig('synthetic_compare.png', dpi=300, bbox_inches='tight')
+
+fig.savefig(join('results','synthetic_compare.png'), dpi=300, bbox_inches='tight', transparent=True)
 # %%
 # # Plot profile using contour
 # mesh_X, mesh_Y = np.meshgrid(mesh_x,mesh_y)
