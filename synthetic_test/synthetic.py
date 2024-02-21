@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import numpy as np
+from os.path import join
 
 import pygimli as pg
 import pygimli.meshtools as mt
@@ -48,9 +49,13 @@ rhomap = [[1, 50.],
           [3, 150.]]
 
 # Take a look at the mesh and the resistivity distribution
-pg.show(mesh, 
-        # data=rhomap, cMap='jet', label=pg.unit('res'), 
+ax,_ = pg.show(mesh, 
+        data=rhomap, cMap='jet', label=pg.unit('res'), 
         showMesh=True)
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+fig = ax.figure
+fig.savefig(join('results','layer.png'), dpi=300, bbox_inches='tight')
 # save the mesh to binary file
 mesh.save("mesh.bms") # can be load by pg.load()
 # %%
@@ -70,17 +75,41 @@ pg.info('The data contains:', data.dataMap().keys())
 pg.info('Simulated rhoa (min/max)', min(data['rhoa']), max(data['rhoa']))
 pg.info('Selected data noise %(min/max)', min(data['err'])*100, max(data['err'])*100)
 
-pg.show(data,cMap='jet')
+ax, _ = pg.show(data,cMap='jet')
+ax.set_xlabel('Distance (m)')
+ax.set_ylabel('Array type and \nElectrode separation (m)')
+fig = ax.figure
+fig.savefig(join('results','data.png'), dpi=300, bbox_inches='tight')
+
 # save the data for further use
 data.save('simple.dat')
 
+# %%
+# Plot the eletrode position
+fig, ax = plt.subplots()
+ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'kv',label='Electrode')
+
+ax.set_ylim([-10,0.5])
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+ax.legend(loc='right')
+ax.set_yticks([-10,-5,0])
+ax.set_xticks([0, 10, 20, 30, 40, 50 ,60, 70, 80,90,100])
+ax.set_aspect('equal')
+fig = ax.figure
+fig.savefig(join('results','electrode.png'), dpi=300, bbox_inches='tight')
 
 # %% Inversion using normal mesh (no prior layer scheme)
 world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
 mesh2 = mt.createMesh(world2, 
                      area=1,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
-pg.show(mesh2)
+ax,_ = pg.show(mesh2)
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+fig = ax.figure
+fig.savefig(join('results','electrode.png'), dpi=300, bbox_inches='tight')
+
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr2 = ert.ERTManager(data)
