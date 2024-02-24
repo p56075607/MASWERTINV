@@ -50,7 +50,8 @@ rhomap = [[1, 50.],
 
 # Take a look at the mesh and the resistivity distribution
 ax,_ = pg.show(mesh, 
-        data=rhomap, cMap='jet', label=pg.unit('res'), 
+        data=rhomap, cMap='jet', logScale=True,
+        label=pg.unit('res'), 
         showMesh=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
@@ -191,6 +192,10 @@ ax3.add_patch(plt.Polygon(triangle_left,color='white'))
 ax3.add_patch(plt.Polygon(triangle_right,color='white'))
 ax3.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
 ax3.set_ylim(-30, 0)
+ax3.plot(pg.x(interface1.nodes()),pg.y(interface1.nodes()),'--k')
+ax3.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
+ax3.set_ylim(-30, 0)
+ax3.set_xlim(0,100)
 
 # Subplot 5:structured constrained grid 
 rho_layer_grid = pg.interpolate(mgr3.paraDomain, mgr3.model, grid.cellCenters())
@@ -213,21 +218,24 @@ residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
 pg.viewer.showMesh(grid,data=residual_normal_grid,ax=ax4,
                     label='Relative resistivity difference (%)',
                 #     logScale=True, 
-                    cMap='RdBu_r', 
+                    cMap='bwr', 
                     cMin=-35,cMax=35,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
 ax4.set_title('Normal mesh resistivity difference profile',fontweight="bold", size=16)
 ax4.add_patch(plt.Polygon(triangle_left,color='white'))
 ax4.add_patch(plt.Polygon(triangle_right,color='white'))
 ax4.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
+ax4.plot(pg.x(interface1.nodes()),pg.y(interface1.nodes()),'--k')
+ax4.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
 ax4.set_ylim(-30, 0)
+ax4.set_xlim(0,100)
 
 # Subplot 6:Layered mesh resistivity residual
 residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
 pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax6,
                     label='Relative resistivity difference (%)',
                 #     logScale=True, 
-                    cMap='RdBu_r', 
+                    cMap='bwr', 
                     cMin=-35,cMax=35,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
                     )

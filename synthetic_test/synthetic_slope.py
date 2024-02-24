@@ -54,7 +54,10 @@ rhomap = [[1, 150.],
           [2, 50.]]
 
 # Take a look at the mesh and the resistivity distribution
-ax, _ = pg.show(mesh, data=rhomap, cMap='jet', label=pg.unit('res'), showMesh=True)
+ax,_ = pg.show(mesh, 
+        data=rhomap, cMap='jet', logScale=True,
+        label=pg.unit('res'), 
+        showMesh=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
@@ -168,6 +171,7 @@ white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100],
                           [c1.node(12).pos()[0], 80],[0, 80]])
 ax3.add_patch(plt.Polygon(white_polygon,color='white'))
 ax3.plot(electrode_x, electrode_y, 'ko', markersize=2)
+ax3.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
 
 # Subplot 5:structured constrained grid 
 rho_layer_grid = pg.interpolate(mgr3.paraDomain, mgr3.model, grid.cellCenters())
@@ -189,20 +193,21 @@ residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
 pg.viewer.showMesh(grid,data=residual_normal_grid,ax=ax4,
                     label='Relative resistivity difference (%)',
                 #     logScale=True, 
-                    cMap='RdBu_r', 
+                    cMap='bwr', 
                      cMin=-50,cMax=50,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
 ax4.set_title('Normal mesh resistivity difference profile',fontweight="bold", size=16)
 ax4.add_patch(plt.Polygon(white_polygon,color='white'))
 ax4.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
 ax4.plot(electrode_x, electrode_y,'ko',markersize=2)
+ax4.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
 
 # Subplot 6:Layered mesh resistivity residual
 residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
 pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax6,
                     label='Relative resistivity difference (%)',
                 #     logScale=True, 
-                    cMap='RdBu_r', 
+                    cMap='bwr', 
                     cMin=-50,cMax=50,
                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
                     )
