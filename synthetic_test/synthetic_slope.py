@@ -1,5 +1,5 @@
 # %%
-# Build a three-layer model for electrical resistivity tomography synthetic test using pygimli package
+# Build a two-layer slope slip model for electrical resistivity tomography synthetic test using pygimli package
 import matplotlib.pyplot as plt
 import numpy as np
 from os.path import join
