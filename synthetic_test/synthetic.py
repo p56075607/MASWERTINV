@@ -56,7 +56,7 @@ ax,_ = pg.show(mesh,
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
-fig.savefig(join('results','layer.png'), dpi=300, bbox_inches='tight')
+# fig.savefig(join('results','layer.png'), dpi=300, bbox_inches='tight')
 # save the mesh to binary file
 mesh.save("mesh.bms") # can be load by pg.load()
 # %%
@@ -80,7 +80,7 @@ ax, _ = pg.show(data,cMap='jet')
 ax.set_xlabel('Distance (m)')
 ax.set_ylabel('Array type and \nElectrode separation (m)')
 fig = ax.figure
-fig.savefig(join('results','data.png'), dpi=300, bbox_inches='tight')
+# fig.savefig(join('results','data.png'), dpi=300, bbox_inches='tight')
 
 # save the data for further use
 data.save('simple.dat')
@@ -98,7 +98,7 @@ ax.set_yticks([-10,-5,0])
 ax.set_xticks([0, 10, 20, 30, 40, 50 ,60, 70, 80,90,100])
 ax.set_aspect('equal')
 fig = ax.figure
-fig.savefig(join('results','electrode.png'), dpi=300, bbox_inches='tight')
+# fig.savefig(join('results','electrode.png'), dpi=300, bbox_inches='tight')
 
 # %% Inversion using normal mesh (no prior layer scheme)
 world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
@@ -109,7 +109,7 @@ ax,_ = pg.show(mesh2)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
-fig.savefig(join('results','normal_mesh.png'), dpi=300, bbox_inches='tight')
+# fig.savefig(join('results','normal_mesh.png'), dpi=300, bbox_inches='tight')
 
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
@@ -123,9 +123,8 @@ mgr2.showResultAndFit(cMap='jet')
 plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.5)
 left_edge = 30
 right_edge = 70
-interface1 = mt.createLine(start=[left_edge, -5 ], end=[right_edge, -5] )
-interface2 = mt.createLine(start=[left_edge, -15], end=[right_edge, -15])
-plc = interface1 + interface2 + plc
+interface2 = mt.createLine(start=[left_edge, -5], end=[right_edge, -5])
+plc = interface2 + plc
 pg.show(plc, markers=True)
 
 mesh3 = mt.createMesh(plc,
@@ -137,7 +136,7 @@ ax.set_ylim(-30, 0)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
-fig.savefig(join('results','layered_mesh.png'), dpi=300, bbox_inches='tight')
+# fig.savefig(join('results','layered_mesh.png'), dpi=300, bbox_inches='tight')
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr3 = ert.ERTManager(data)
@@ -192,7 +191,6 @@ ax3.add_patch(plt.Polygon(triangle_left,color='white'))
 ax3.add_patch(plt.Polygon(triangle_right,color='white'))
 ax3.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
 ax3.set_ylim(-30, 0)
-ax3.plot(pg.x(interface1.nodes()),pg.y(interface1.nodes()),'--k')
 ax3.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
 ax3.set_ylim(-30, 0)
 ax3.set_xlim(0,100)
@@ -207,7 +205,6 @@ pg.viewer.showMesh(mgr3.paraDomain, mgr3.model,#grid,data=rho_layer_grid,
 ax5.set_title('Structured constrained inverted resistivity profile',fontweight="bold", size=16)
 ax5.add_patch(plt.Polygon(triangle_left,color='white'))
 ax5.add_patch(plt.Polygon(triangle_right,color='white'))
-pg.show(interface1,ax=ax5)
 pg.show(interface2,ax=ax5)
 ax5.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
 ax5.set_ylim(-30, 0)
@@ -225,7 +222,6 @@ ax4.set_title('Normal mesh resistivity difference profile',fontweight="bold", si
 ax4.add_patch(plt.Polygon(triangle_left,color='white'))
 ax4.add_patch(plt.Polygon(triangle_right,color='white'))
 ax4.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
-ax4.plot(pg.x(interface1.nodes()),pg.y(interface1.nodes()),'--k')
 ax4.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
 ax4.set_ylim(-30, 0)
 ax4.set_xlim(0,100)
@@ -242,13 +238,12 @@ pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax6,
 ax6.set_title('Structured constrained resistivity difference profile',fontweight="bold", size=16)
 ax6.add_patch(plt.Polygon(triangle_left,color='white'))
 ax6.add_patch(plt.Polygon(triangle_right,color='white'))
-pg.show(interface1,ax=ax6)
 pg.show(interface2,ax=ax6)
 ax6.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
 ax6.set_ylim(-30, 0)
 
 
-fig.savefig(join('results','synthetic_compare.png'), dpi=300, bbox_inches='tight', transparent=True)
+# fig.savefig(join('results','synthetic_compare.png'), dpi=300, bbox_inches='tight', transparent=True)
 # %%
 # # Plot profile using contour
 # mesh_X, mesh_Y = np.meshgrid(mesh_x,mesh_y)
