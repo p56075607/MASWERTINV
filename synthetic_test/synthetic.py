@@ -196,6 +196,9 @@ ax3.plot(pg.x(interface1.nodes()),pg.y(interface1.nodes()),'--k')
 ax3.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
 ax3.set_ylim(-30, 0)
 ax3.set_xlim(0,100)
+ax3.text(5,-25,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
+         mgr2.inv.relrms(), mgr2.inv.chi2())
+            ,fontweight="bold", size=16)
 
 # Subplot 5:structured constrained grid 
 rho_layer_grid = pg.interpolate(mgr3.paraDomain, mgr3.model, grid.cellCenters())
@@ -212,6 +215,10 @@ pg.show(interface2,ax=ax5)
 ax5.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
 ax5.set_ylim(-30, 0)
 ax5.set_xlim(0,100)
+ax5.text(5,-25,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
+         mgr3.inv.relrms(), mgr3.inv.chi2())
+            ,fontweight="bold", size=16)
+
 # Calculate the resistivity relative difference
 # Subplot 4:Normal mesh resistivity residual
 residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
