@@ -37,7 +37,7 @@ pg.show(mesh,markers=False)
 
 # Create a map to set resistivity values in the appropriate regions
 # [[regionNumber, resistivity], [regionNumber, resistivity], [...]
-rhomap = [[1, 300.],
+rhomap = [[1, 500.],
           [2, 1500.],
           [3, 1500.]]
 
@@ -96,7 +96,7 @@ fig = ax.figure
 # fig.savefig(join('results','electrode.png'), dpi=300, bbox_inches='tight')
 
 # %% Inversion using normal mesh (no prior layer scheme)
-plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.5)
+plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=1)
 
 mesh3 = mt.createMesh(plc,
                       area=10,
@@ -112,7 +112,7 @@ mgr2.invert(mesh=mesh3, lam=100, verbose=True)
 mgr2.showResultAndFit(cMap='jet')
 
 # %%  Inversion using structural constrain mesh
-plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.1)
+plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=1)
 artif1 = mt.createRectangle(start=[37.5, 0], end=[42.5, -10],isClosed=False,marker=2,boundaryMarker=2 )
 artif2 = mt.createRectangle(start=[77.5, 0], end=[82.5, -10],isClosed=False,marker=2,boundaryMarker=2)
 plc = plc + artif1 + artif2
@@ -138,14 +138,14 @@ depth = 30
 
 world = mt.createWorld(start=[left, 0], end=[right, -depth])
 
-artif1 = mt.createRectangle(start=[37.5, 0], end=[42.5, -10],marker=2)
-artif2 = mt.createRectangle(start=[77.5, 0], end=[82.5, -10],marker=3)
-wet1 = mt.createRectangle(start=[0, 0], end=[37.5, -5],marker=4)
-wet2 = mt.createRectangle(start=[42.5, 0], end=[77.5, -5],marker=4)
-wet3 = mt.createRectangle(start=[82.5, 0], end=[128, -5],marker=4)
+artif1 = mt.createRectangle(start=[37.5, 0.1], end=[42.5, -10],marker=2)
+artif2 = mt.createRectangle(start=[77.5, 0.1], end=[82.5, -10],marker=3)
+wet1 = mt.createLine(start=[0,    -5], end=[37.5, -5])
+wet2 = mt.createLine(start=[42.5, -5], end=[77.5, -5])
+wet3 = mt.createLine(start=[82.5, -5], end=[128,  -5])
 
 geom = world + artif1 + artif2 + wet1 + wet2 + wet3
-pg.show(geom, markers=False)
+pg.show(geom, markers=True)
 # %%
 # Synthetic data generation
 # Create a Dipole Dipole ('dd') measuring scheme with 21 electrodes.
@@ -160,10 +160,10 @@ pg.show(mesh,markers=False)
 
 # Create a map to set resistivity values in the appropriate regions
 # [[regionNumber, resistivity], [regionNumber, resistivity], [...]
-rhomap = [[1, 300.],
+rhomap = [[1, 500.],
           [2, 1500.],
           [3, 1500.],
-          [4, 50.]]
+          [0, 50.]]
 
 # Take a look at the mesh and the resistivity distribution
 kw = dict(cMin=50, cMax=1500, logScale=True, cMap='jet',
@@ -226,7 +226,7 @@ mgr5.showResultAndFit(cMap='jet')
 
 # %%
 # Comparesion of the results
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2,constrained_layout=True)
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2,figsize=(16,4),constrained_layout=True)
 mgr2.showResult(ax=ax1,coverage=None,**kw)
 mgr3.showResult(ax=ax2,coverage=None,**kw)
 mgr4.showResult(ax=ax3,coverage=None,**kw)
@@ -236,12 +236,12 @@ mgr5.showResult(ax=ax4,coverage=None,**kw)
 # %%
 # Comparesion of the results by the residual profile
 # Re-interpolate the grid
-mesh_x = np.linspace(0,100,100)
-mesh_y = np.linspace(-30,0,60)
-grid = pg.createGrid(x=mesh_x,y=mesh_y )
+# mesh_x = np.linspace(0,100,100)
+# mesh_y = np.linspace(-30,0,60)
+# grid = pg.createGrid(x=mesh_x,y=mesh_y )
 
-# Creat a pg RVector with the length of the cell of mesh and the value of rhomap
-rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
-# Distinguish the region of the mesh and insert the value of rhomap
-rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
+# # Creat a pg RVector with the length of the cell of mesh and the value of rhomap
+# rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
+# # Distinguish the region of the mesh and insert the value of rhomap
+# rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
 
