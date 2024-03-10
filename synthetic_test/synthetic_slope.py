@@ -158,7 +158,7 @@ rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
 # Distinguish the region of the mesh and insert the value of rhomap
 rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
 
-plt.figure(figsize=(16, 20),constrained_layout=True)
+fig = plt.figure(figsize=(16, 20),constrained_layout=True)
 for i, w_s in enumerate(np.linspace(0,1,5)):
         ax = plt.subplot(5, 2, 2*i+1)
         pg.show(mesh3, invs[i].model, ax=ax, **kw)
