@@ -465,90 +465,122 @@ ax4.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'--k')
 ax4.set_xlim([0, 128])
 ax4.set_ylim([-30, 0])
 
-# # Subplot 3: Drytime normal comp. mesh
-# dry_normal_diff = ((dry_normal_grid - rho_grid)/rho_grid)*100
-# pg.viewer.showMesh(grid, dry_normal_diff
-#                    , ax=ax3, **kw_compare)
-# ax3.add_patch(plt.Polygon(triangle_left,color='white'))
-# ax3.add_patch(plt.Polygon(triangle_right,color='white'))
-# ax3.set_title('Dry resistivity model with normal mesh compared to TRUE',fontweight="bold", size=16)
-# ax3.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'--k')
-# ax3.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'--k')
-# ax3.set_xlim([0, 128])
-# ax3.set_ylim([-30, 0])
-
-# # Subplot 4: Drytime structural comp. mesh
-# dry_struct_diff = ((dry_struc_grid - rho_grid)/rho_grid)*100
-# pg.viewer.showMesh(grid, dry_struct_diff
-#                    , ax=ax4, **kw_compare)
-# ax4.add_patch(plt.Polygon(triangle_left,color='white'))
-# ax4.add_patch(plt.Polygon(triangle_right,color='white'))
-# ax4.set_title('Dry resistivity model with structural mesh compared to TRUE',fontweight="bold", size=16)
-# ax4.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'-k')
-# ax4.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'-k')
-# ax4.set_xlim([0, 128])
-# ax4.set_ylim([-30, 0])
-
 fig.savefig(join('results', 'artificial_dry.png'), dpi=300, bbox_inches='tight')
 
-# %%
-# blank plot
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(16, 4),constrained_layout=True)
-pg.viewer.showMesh(grid, ((rho_grid - rho_grid)/rho_grid)*100
-                   , ax=ax4, **kw_compare)
-ax4.set_aspect('equal')
 # %% Wet mesh compare
 wet_normal_grid = pg.interpolate(mgr_wet_normal.paraDomain, mgr_wet_normal.model, grid.cellCenters())
 
 wet_struc_grid = pg.interpolate(mgr_wet_struc.paraDomain, mgr_wet_struc.model, grid.cellCenters())
 
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2,2, figsize=(16,4), 
+fig, ((ax1, ax2, ax3), (ax4, ax5, ax6)) = plt.subplots(2,3, 
+                                                         figsize=(22,4), 
                                                          constrained_layout=True)
-# Subplot 1: wettime normal mesh
-pg.viewer.showMesh(mgr_wet_normal.paraDomain, mgr_wet_normal.model, ax=ax1, **kw)
-ax1.add_patch(plt.Polygon(triangle_left,color='white'))
-ax1.add_patch(plt.Polygon(triangle_right,color='white'))
-ax1.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'--k')
-ax1.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'--k')
-ax1.set_xlim([0, 128])
-ax1.set_ylim([-30, 0])
+# Subplot1: Wet true model
+pg.viewer.showMesh(mesh2, rhomap2, ax=ax1, **kw)
+ax1.set_title('Wet true resistivity model',fontweight="bold", size=16)
 
-# Subplot 2: wettime structural mesh
-pg.viewer.showMesh(mgr_wet_struc.paraDomain, mgr_wet_struc.model, ax=ax2, **kw)
+# Subplot 2: wettime normal mesh
+pg.viewer.showMesh(mgr_wet_normal.paraDomain, mgr_wet_normal.model, ax=ax2, **kw)
 ax2.add_patch(plt.Polygon(triangle_left,color='white'))
 ax2.add_patch(plt.Polygon(triangle_right,color='white'))
+ax2.set_title('wet resistivity model with normal mesh',fontweight="bold", size=16)
+ax2.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'--k')
+ax2.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'--k')
 ax2.set_xlim([0, 128])
+ax2.set_ylim([-30, 0])
 
-kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
-                  label='Relative resistivity difference (%)',
-                  xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
-# Subplot 3: wettime normal comp. mesh
-wet_normal_diff = ((wet_normal_grid - rho_wet_grid)/rho_wet_grid)*100
-pg.viewer.showMesh(grid, wet_normal_diff
-                   , ax=ax3, **kw_compare)
+# Subplot 3: wettime structural mesh
+pg.viewer.showMesh(mgr_wet_struc.paraDomain, mgr_wet_struc.model, ax=ax3, **kw)
 ax3.add_patch(plt.Polygon(triangle_left,color='white'))
 ax3.add_patch(plt.Polygon(triangle_right,color='white'))
-ax3.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'--k')
-ax3.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'--k')
 ax3.set_xlim([0, 128])
-ax3.set_ylim([-30, 0])
+ax3.set_title('wet resistivity model with structural mesh',fontweight="bold", size=16)
 
-# Subplot 4: wettime structural comp. mesh
-wet_struc_diff = ((wet_struc_grid - rho_wet_grid)/rho_wet_grid)*100
-pg.viewer.showMesh(grid, wet_struc_diff
+
+class StretchOutNormalize(plt.Normalize):
+    def __init__(self, vmin=None, vmax=None, low=None, up=None, clip=False):
+        self.low = low
+        self.up = up
+        plt.Normalize.__init__(self, vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        x, y = [self.vmin, self.low, self.up, self.vmax], [0, 0.5-1e-9, 0.5+1e-9, 1]
+        return np.ma.masked_array(np.interp(value, x, y))
+
+clim = [-50, 50]
+midnorm=StretchOutNormalize(vmin=clim[0], vmax=clim[1], low=-5, up=5)
+
+X,Y = np.meshgrid(mesh_x,mesh_y)
+wet_normal_diff = ((wet_normal_grid - rho_grid)/rho_grid)*100
+wet_normal_diff_pos = pg.interpolate(grid, wet_normal_diff, grid.positions())
+wet_normal_mesh = np.reshape(wet_normal_diff_pos,(len(mesh_y),len(mesh_x)))
+ax5.contourf(X,Y,wet_normal_mesh,
+            levels = 128,
+            cmap='bwr',
+            norm=midnorm)
+ax5.set_title('Wet resistivity model with normal mesh compared to TRUE', fontweight="bold", size=16)
+ax5.set_xlabel('Distance (m)')
+ax5.set_ylabel('Depth (m)')
+ax5.add_patch(plt.Polygon(triangle_left,color='white'))
+ax5.add_patch(plt.Polygon(triangle_right,color='white'))
+ax5.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'--k')
+ax5.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'--k')
+ax5.set_xlim([0, 128])
+ax5.set_ylim([-30, 0])
+ax5.set_aspect('equal')
+
+divider = make_axes_locatable(ax5)
+cbaxes = divider.append_axes("right", size="4%", pad=.15)
+m = plt.cm.ScalarMappable(cmap=plt.cm.bwr,norm=midnorm)
+m.set_array(wet_normal_mesh)
+m.set_clim(clim[0],clim[1])
+cb = plt.colorbar(m,
+                boundaries=np.linspace(clim[0],clim[1], 128),
+                cax=cbaxes)
+cb_ytick = np.linspace(clim[0],clim[1],5)
+cb.ax.set_yticks(cb_ytick)
+cb.ax.set_yticklabels(['{:.0f}'.format(x) for x in cb_ytick])
+cb.ax.set_ylabel('Relative resistivity difference\n(%)')
+
+
+wet_struct_diff = ((wet_struc_grid - rho_grid)/rho_grid)*100
+wet_sctruc_diff_pos = pg.interpolate(grid, wet_struct_diff, grid.positions())
+wet_sctruc_mesh = np.reshape(wet_sctruc_diff_pos,(len(mesh_y),len(mesh_x)))
+ax6.contourf(X,Y,wet_sctruc_mesh,
+            levels = 128,
+            cmap='bwr',
+            norm=midnorm)
+ax6.set_title('Wet resistivity model with sctructural mesh compared to TRUE', fontweight="bold", size=16)
+ax6.set_xlabel('Distance (m)')
+ax6.set_ylabel('Depth (m)')
+ax6.add_patch(plt.Polygon(triangle_left,color='white'))
+ax6.add_patch(plt.Polygon(triangle_right,color='white'))
+ax6.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'-k')
+ax6.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'-k')
+ax6.set_xlim([0, 128])
+ax6.set_ylim([-30, 0])
+ax6.set_aspect('equal')
+
+divider = make_axes_locatable(ax6)
+cbaxes = divider.append_axes("right", size="4%", pad=.15)
+m = plt.cm.ScalarMappable(cmap=plt.cm.bwr,norm=midnorm)
+m.set_array(wet_sctruc_mesh)
+m.set_clim(clim[0],clim[1])
+cb = plt.colorbar(m,
+                boundaries=np.linspace(clim[0],clim[1], 128),
+                cax=cbaxes)
+cb_ytick = np.linspace(clim[0],clim[1],5)
+cb.ax.set_yticks(cb_ytick)
+cb.ax.set_yticklabels(['{:.0f}'.format(x) for x in cb_ytick])
+cb.ax.set_ylabel('Relative resistivity difference\n(%)')
+
+pg.viewer.showMesh(grid, ((rho_grid - rho_grid)/rho_grid)*100
                    , ax=ax4, **kw_compare)
-ax4.add_patch(plt.Polygon(triangle_left,color='white'))
-ax4.add_patch(plt.Polygon(triangle_right,color='white'))
-ax4.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'-k')
-ax4.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'-k')
+ax4.set_title('Ideality', fontweight="bold", size=16)
+ax4.set_aspect('equal')
+ax4.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'--k')
+ax4.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'--k')
 ax4.set_xlim([0, 128])
 ax4.set_ylim([-30, 0])
 
-ax1.set_title('Wet resistivity model with normal mesh',fontweight="bold", size=16)
-ax2.set_title('Wet resistivity model with structural mesh',fontweight="bold", size=16)
-ax3.set_title('Wet resistivity model with normal mesh compared to TRUE',fontweight="bold", size=16)
-ax4.set_title('Wet resistivity model with structural mesh compared to TRUE',fontweight="bold", size=16)
-
 fig.savefig(join('results', 'artificial_wet.png'), dpi=300, bbox_inches='tight')
-
-# %%

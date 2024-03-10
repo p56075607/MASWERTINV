@@ -115,107 +115,75 @@ c2 = mt.createCircle(pos=(0, 310),radius=200, start=1.53*np.pi, end=1.67*np.pi,i
                      boundaryMarker=2) # The marker set to 2 from 1 to be distinguished from the outer boundary
 plc = slope + c2
 mesh3 = mt.createMesh(plc,
-                      area=10,
+                      area=1,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
 ax,_ = pg.show(mesh3,markers=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
 fig.savefig(join('results','slope_layered_mesh.png'), dpi=300, bbox_inches='tight',transparent=True)
-# %% Inversion with the ERTModelling
-# Creat the ERT Manager
-# Set such an interface weight of a FORWARD OPERATOR
-fop = ert.ERTModelling()
-fop.setMesh(mesh3)
-fop.regionManager().setInterfaceConstraint(2, 0.5)
-fop.setData(data)
-inv3 = pg.Inversion(fop=fop, verbose=True)
-transLog = pg.trans.TransLog()
-inv3.modelTrans = transLog
-inv3.dataTrans = transLog
+# %% Inversion with the ERTModelling and testing different structural constrain weighting values
+# Creat the ERT inversion object list
+invs = []
+for w_s in np.linspace(0,1,5):
+        # Set such an interface weight of a FORWARD OPERATOR
+        fop = ert.ERTModelling()
+        fop.setMesh(mesh3)
+        fop.regionManager().setInterfaceConstraint(2, w_s)
+        fop.setData(data)
+        inv3 = pg.Inversion(fop=fop, verbose=True)
+        transLog = pg.trans.TransLog()
+        inv3.modelTrans = transLog
+        inv3.dataTrans = transLog
 
-# Run the inversion with the preset data. The Inversion mesh will be created
-# with default settings.
-constrained_model = inv3.run(data['rhoa'], data['err'],lam=100)
-# %%
-ax, cb = pg.show(mesh3, constrained_model, label=pg.unit('res'), **kw)
-ax.set_xlabel(ax.get_xlabel(),fontsize=13)
-ax.set_ylabel(ax.get_ylabel(),fontsize=13)
-cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
-
-# %%
-# Comparesion of the results
-fig, (ax1, ax2, ax3) = plt.subplots(3,1, figsize=(8,7),constrained_layout=True)
-pg.show(mesh, rhomap, ax=ax1, **kw)
-pg.show(mesh2, mgr2.model, ax=ax2, **kw)
-pg.show(mesh3, constrained_model, ax=ax3, **kw)
-# %%
+        # Run the inversion with the preset data. The Inversion mesh will be created
+        # with default settings.
+        inv3.run(data['rhoa'], data['err'],lam=100)
+        invs.append(inv3)
+# %% Plot the results by resistivity and the residual profile  
+white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100], 
+                        [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
+                        [c1.node(12).pos()[0], 80],[0, 80]])
+# Calculate the resistivity relative difference
+kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
+                  label='Relative resistivity difference (%)',
+                  xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
 # Comparesion of the results by the residual profile
 # Re-interpolate the grid
 mesh_x = np.linspace(0,c1.node(12).pos()[0],500)
 mesh_y = np.linspace(80,c1.node(12).pos()[1],100)
 grid = pg.createGrid(x=mesh_x,y=mesh_y )
-
 # Creat a pg RVector with the length of the cell of mesh and the value of rhomap
 rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
 # Distinguish the region of the mesh and insert the value of rhomap
 rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
 
-fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(12,8),constrained_layout=True)
-ax2.axis('off')
-# Subplot 1:Original resistivity model
-pg.viewer.showMesh(mesh, rhomap, ax=ax1, **kw)
-ax1.set_title('Original resistivity model profile',fontweight='bold', size=16)
+plt.figure(figsize=(16, 20),constrained_layout=True)
+for i, w_s in enumerate(np.linspace(0,1,5)):
+        ax = plt.subplot(5, 2, 2*i+1)
+        pg.show(mesh3, invs[i].model, ax=ax, **kw)
+        ax.set_xlabel(ax.get_xlabel(),fontsize=13)
+        ax.set_ylabel(ax.get_ylabel(),fontsize=13)
+        ax.set_title('Inverted resistivity profile $W_s={:.2f}$'.format(w_s),fontweight='bold', size=16)
+        cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
+        ax.add_patch(plt.Polygon(white_polygon,color='white'))
+        ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
+        ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
+        ax.text(80,85,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
+                invs[i].relrms(), invs[i].chi2())
+                ,fontweight='bold', size=10)
+        
+        # Compare profiles
+        rho_constrain = pg.interpolate(mesh3, invs[i].model, grid.cellCenters())
+        ax = plt.subplot(5, 2, 2*i+2)
+        pg.show(grid, ((rho_constrain-rho_grid)/rho_grid)*100, ax=ax, **kw_compare)
+        ax.set_xlabel(ax.get_xlabel(),fontsize=13)
+        ax.set_ylabel(ax.get_ylabel(),fontsize=13)
+        ax.set_title('Resistivity difference profile $W_s={:.2f}$'.format(w_s),fontweight='bold', size=16)
+        cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
+        ax.add_patch(plt.Polygon(white_polygon,color='white'))
+        ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
+        ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
 
-# Subplot 3:normal grid 
-rho_normal_grid = pg.interpolate(mesh2, mgr2.model, grid.cellCenters())
-pg.viewer.showMesh(mesh2, mgr2.model, ax=ax3,**kw)
-ax3.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
-ax3.set_title('Normal mesh inverted resistivity profile',fontweight='bold', size=16)
-# cut inversion domain and turn white outside
-white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100], 
-                          [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
-                          [c1.node(12).pos()[0], 80],[0, 80]])
-ax3.add_patch(plt.Polygon(white_polygon,color='white'))
-ax3.plot(electrode_x, electrode_y, 'ko', markersize=2)
-ax3.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
-ax3.text(10,85,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
-         mgr2.inv.relrms(), mgr2.inv.chi2())
-            ,fontweight='bold', size=16)
 
-# Subplot 5:structured constrained grid 
-rho_layer_grid = pg.interpolate(mesh3, constrained_model, grid.cellCenters())
-pg.viewer.showMesh(mesh3, constrained_model, ax=ax5, **kw)
-ax5.set_title('Structured constrained inverted resistivity profile',fontweight='bold', size=16)
-ax5.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
-# cut inversion domain and turn white outside
-ax5.add_patch(plt.Polygon(white_polygon,color='white'))
-ax5.plot(electrode_x, electrode_y, 'ko', markersize=2)
-pg.show(c2,ax=ax5,linewidth=3)
-ax5.text(10,85,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
-         inv3.relrms(), inv3.chi2())
-            ,fontweight='bold', size=16)
-
-# Calculate the resistivity relative difference
-kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
-                  label='Relative resistivity difference (%)',
-                  xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
-# Subplot 4:Normal mesh resistivity residual
-residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
-pg.viewer.showMesh(grid,data=residual_normal_grid,ax=ax4, **kw_compare)
-ax4.set_title('Normal mesh resistivity difference profile',fontweight='bold', size=16)
-ax4.add_patch(plt.Polygon(white_polygon,color='white'))
-ax4.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
-ax4.plot(electrode_x, electrode_y,'ko',markersize=2)
-ax4.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
-
-# Subplot 6:Layered mesh resistivity residual
-residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
-pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax6, **kw_compare)
-ax6.set_title('Structured constrained resistivity difference profile',fontweight='bold', size=16)
-ax6.add_patch(plt.Polygon(white_polygon,color='white'))
-ax6.plot([0.0, c1.node(12).pos()[0]],[110, c1.node(12).pos()[1]],linewidth=1,color='k')
-ax6.plot(electrode_x, electrode_y,'ko',markersize=2)
-pg.show(c2,ax=ax6)
-
-fig.savefig(join('results','slope_synthetic_compare.png'), dpi=300, bbox_inches='tight', transparent=True)
+fig.savefig(join('results','slope_synthetic_Ws.png'), dpi=300, bbox_inches='tight', transparent=True)
