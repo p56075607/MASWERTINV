@@ -97,7 +97,7 @@ data.save('slope.dat')
 mesh2 = mt.createMesh(slope, 
                      area=10,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
-ax,_ = pg.show(mesh2)
+ax,_ = pg.show(mesh2,markers=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
