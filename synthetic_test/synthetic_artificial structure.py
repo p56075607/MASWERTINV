@@ -72,29 +72,23 @@ pg.info('Simulated data', data)
 pg.info('The data contains:', data.dataMap().keys())
 pg.info('Simulated rhoa (min/max)', min(data['rhoa']), max(data['rhoa']))
 pg.info('Selected data noise %(min/max)', min(data['err'])*100, max(data['err'])*100)
-
-ax, _ = pg.show(data,cMap='jet')
+# %%
+ax, _ = pg.show(data,cMap='jet',cMin=150, cMax=3500)
 ax.set_xlabel('Distance (m)')
 ax.set_ylabel('Array type and \nElectrode separation (m)')
-fig = ax.figure
-# fig.savefig(join('results','data.png'), dpi=300, bbox_inches='tight')
-
-# # save the data for further use
-# data.save('simple.dat')
-
-# Plot the eletrode position
-fig, ax = plt.subplots()
 ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'kv',label='Electrode')
 
-ax.set_ylim([-10,0.5])
+# ax.set_ylim([-10,0.5])
 ax.set_xlabel('Distance (m)',fontsize=13)
-ax.set_ylabel('Depth (m)',fontsize=13)
 ax.legend(loc='right')
-ax.set_yticks([-10,-5,0])
+# ax.set_yticks([-10,-5,0])
 ax.set_xticks([0, 10, 20, 30, 40, 50 ,60, 70, 80,90,100,110,120,130])
 ax.set_aspect('equal')
 fig = ax.figure
-# fig.savefig(join('results','electrode.png'), dpi=300, bbox_inches='tight')
+fig.savefig(join('results','artificial_electrode&data.png'), dpi=300, bbox_inches='tight')
+
+# # save the data for further use
+# data.save('simple.dat')
 
 # %% Inversion using normal mesh (no prior layer scheme)
 plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.2)
@@ -103,8 +97,13 @@ mesh3 = mt.createMesh(plc,
                       area=1,
                 #       quality=33
                       )    # Quality mesh generation with no angles smaller than X degrees
-ax,_ = pg.show(mesh3,markers=True)
-
+ax,_ = pg.show(mesh3,markers=False)
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+ax.set_xlim(0, 130)
+ax.set_ylim(-30, 0)
+fig = ax.figure
+fig.savefig(join('results','artifical_normal_mesh.png'), dpi=300, bbox_inches='tight')
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr_dry_normal = ert.ERTManager(data)
@@ -123,6 +122,12 @@ mesh4 = mt.createMesh(plc,
                 #       quality=33
                       )    # Quality mesh generation with no angles smaller than X degrees
 ax,_ = pg.show(mesh4,markers=False)
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+ax.set_xlim(0, 130)
+ax.set_ylim(-30, 0)
+fig = ax.figure
+fig.savefig(join('results','artifical_struct_mesh.png'), dpi=300, bbox_inches='tight')
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr_dry_struc = ert.ERTManager(data)
@@ -197,16 +202,24 @@ pg.info('The data2 contains:', data2.dataMap().keys())
 pg.info('Simulated rhoa (min/max)', min(data2['rhoa']), max(data2['rhoa']))
 pg.info('Selected data2 noise %(min/max)', min(data2['err'])*100, max(data2['err'])*100)
 
-ax, _ = pg.show(data2,cMap='jet')
-ax.set_xlabel('Distance (m)')
-ax.set_ylabel('Array type and \nElectrode separation (m)')
-fig = ax.figure
-# fig.savefig(join('results','data2.png'), dpi=300, bbox_inches='tight')
 
 # # save the data2 for further use
 # data2.save('simple.dat')
 # Inversion using normal mesh (no prior layer scheme)
+# %%
+ax, _ = pg.show(data2,cMap='jet',cMin=150, cMax=3500)
+ax.set_xlabel('Distance (m)')
+ax.set_ylabel('Array type and \nElectrode separation (m)')
+ax.plot(np.array(pg.x(data2)), np.array(pg.z(data2)),'kv',label='Electrode')
 
+# ax.set_ylim([-10,0.5])
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.legend(loc='right')
+# ax.set_yticks([-10,-5,0])
+ax.set_xticks([0, 10, 20, 30, 40, 50 ,60, 70, 80,90,100,110,120,130])
+ax.set_aspect('equal')
+fig = ax.figure
+fig.savefig(join('results','artificial_electrode&data_wet.png'), dpi=300, bbox_inches='tight')
 
 # %%
 # Creat the ERT Manager
