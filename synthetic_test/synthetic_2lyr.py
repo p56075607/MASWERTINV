@@ -19,13 +19,15 @@ right = 100
 depth = 30
 
 world = mt.createWorld(start=[left, 0], end=[right, -depth],
-                       layers=[-5, -15], 
+                       layers=[-5], 
                        worldMarker=True)
-pg.show(world)
-
+block = mt.createRectangle(start=[30, -10], end=[70, -20], marker=3)
+geom = block + world
+pg.show(geom,markers=True)
+# %%
 # Synthetic data generation
 # Create a Dipole Dipole ('dd') measuring scheme with 21 electrodes.
-scheme = ert.createData(elecs=np.linspace(start=0, stop=100, num=21),
+scheme = ert.createData(elecs=np.linspace(start=0, stop=100, num=51),
                            schemeName='dd')
 
 # Put all electrode (aka sensors) positions into the PLC to enforce mesh
@@ -37,22 +39,23 @@ scheme = ert.createData(elecs=np.linspace(start=0, stop=100, num=21),
 #     world.createNode(p - [0, 0.1])
 
 # Create a mesh for the finite element modelling with appropriate mesh quality.
-mesh = mt.createMesh(world, 
+mesh = mt.createMesh(geom, 
                      area=1,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 pg.show(mesh,markers=True)
 
 # Create a map to set resistivity values in the appropriate regions
 # [[regionNumber, resistivity], [regionNumber, resistivity], [...]
-rhomap = [[1, 50.],
-          [2, 100.],
-          [3, 150.]]
+rhomap = [[1, 100.],
+          [2, 500.],
+          [3, 1500.]]
 
 # Take a look at the mesh and the resistivity distribution
+kw = dict(cMin=100, cMax=1500, logScale=True, cMap='jet',
+          xlabel='Distance (m)', ylabel='Depth (m)', 
+          label=pg.unit('res'), orientation='vertical')
 ax,_ = pg.show(mesh, 
-        data=rhomap, cMap='jet', logScale=True,
-        label=pg.unit('res'), 
-        showMesh=True)
+        data=rhomap, **kw, showMesh=True) 
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
@@ -103,7 +106,7 @@ fig = ax.figure
 # %% Inversion using normal mesh (no prior layer scheme)
 world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
 mesh2 = mt.createMesh(world2, 
-                     area=1,
+                     area=0.5,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 ax,_ = pg.show(mesh2)
 ax.set_xlabel('Distance (m)',fontsize=13)
@@ -121,14 +124,14 @@ mgr2.showResultAndFit(cMap='jet')
 
 # %% Inversion using three-layer based mesh
 plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.5)
-left_edge = 30
-right_edge = 70
+left_edge = left
+right_edge = right
 interface2 = mt.createLine(start=[left_edge, -5], end=[right_edge, -5])
 plc = interface2 + plc
 pg.show(plc, markers=True)
-
+# %%
 mesh3 = mt.createMesh(plc,
-                      area=1,
+                      area=0.5,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
 ax,_ = pg.show(mesh3)
 ax.set_xlim(0, 100)
@@ -148,17 +151,16 @@ mgr3.showResultAndFit(cMap='jet')
 # %%
 # Comparesion of the results
 fig, (ax1, ax2, ax3) = plt.subplots(3,1, figsize=(8,7))
-pg.show(mesh, rhomap, ax=ax1, hold=True, cMap="jet", logScale=True, label='Resistivity ($\Omega$m)',
-        orientation="vertical", cMin=50, cMax=150)
-mgr2.showResult(ax=ax2, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
-mgr3.showResult(ax=ax3, cMap="jet", cMin=50, cMax=150, orientation="vertical",coverage=None)
+pg.show(mesh, rhomap, ax=ax1, **kw)
+mgr2.showResult(ax=ax2, **kw)
+mgr3.showResult(ax=ax3, **kw)
 ax3.set_xlim(0, 100)
 
 # %%
 # Comparesion of the results by the residual profile
 # Re-interpolate the grid
-mesh_x = np.linspace(0,100,100)
-mesh_y = np.linspace(-30,0,60)
+mesh_x = np.linspace(0,100,300)
+mesh_y = np.linspace(-30,0,180)
 grid = pg.createGrid(x=mesh_x,y=mesh_y )
 
 # Creat a pg RVector with the length of the cell of mesh and the value of rhomap
@@ -169,143 +171,101 @@ rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
 fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(16,8),constrained_layout=True)
 ax2.axis('off')
 # Subplot 1:Original resistivity model
-pg.viewer.showMesh(mesh, rhomap,ax=ax1,
-                    label='Resistivity ($\Omega m$)',
-                    logScale=True,cMap='jet',cMin=50,cMax=150,
-                    xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
+pg.viewer.showMesh(mesh, rhomap,ax=ax1, **kw)
 ax1.set_title('Original resistivity model profile',fontweight="bold", size=16)
+
+def plot_resistivity(ax, mesh, mgr, data, title, **kw):
+    pg.viewer.showMesh(mesh, mgr.model,#grid,data=rho_normal_grid,
+                    ax=ax, **kw)
+    # plot a triangle
+    triangle_left = np.array([[left, -depth], [depth, -depth], [left,0], [left, -depth]])
+    triangle_right = np.array([[right, -depth], [right-depth, -depth], [right,0], [right, depth]])
+    ax.add_patch(plt.Polygon(triangle_left,color='white'))
+    ax.add_patch(plt.Polygon(triangle_right,color='white'))
+    ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
+    ax.set_title(title,fontweight="bold", size=16)
+    ax.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
+    ax.set_ylim(-30, 0)
+    ax.set_xlim(0,100)
+    ax.text(5,-27.5,'RRMS: {:.2f}%'.format(
+            mgr.inv.relrms())
+                ,fontweight="bold", size=12)
 
 # Subplot 3:normal grid 
 rho_normal_grid = pg.interpolate(mesh2, mgr2.model, grid.cellCenters())
-pg.viewer.showMesh(mesh2, mgr2.model,#grid,data=rho_normal_grid,
-                   ax=ax3,
-                    label='Resistivity ($\Omega m$)',
-                    logScale=True,cMap='jet',cMin=50,cMax=150,
-                    xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
-ax3.set_title('Normal mesh inverted resistivity profile',fontweight="bold", size=16)
-
-# plot a triangle
-triangle_left = np.array([[left, -depth], [depth, -depth], [left,0], [left, -depth]])
-triangle_right = np.array([[right, -depth], [right-depth, -depth], [right,0], [right, depth]])
-ax3.add_patch(plt.Polygon(triangle_left,color='white'))
-ax3.add_patch(plt.Polygon(triangle_right,color='white'))
-ax3.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
-ax3.set_ylim(-30, 0)
-ax3.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
-ax3.set_ylim(-30, 0)
-ax3.set_xlim(0,100)
-
+plot_resistivity(ax=ax3, mesh=mesh2, mgr=mgr2, data=data, title='Normal mesh inverted resistivity profile', **kw)
 # Subplot 5:structured constrained grid 
 rho_layer_grid = pg.interpolate(mgr3.paraDomain, mgr3.model, grid.cellCenters())
-pg.viewer.showMesh(mgr3.paraDomain, mgr3.model,#grid,data=rho_layer_grid,
-                    ax=ax5,
-                    label='Resistivity ($\Omega m$)',
-                    logScale=True,cMap='jet',cMin=50,cMax=150,
-                    xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
-ax5.set_title('Structured constrained inverted resistivity profile',fontweight="bold", size=16)
-ax5.add_patch(plt.Polygon(triangle_left,color='white'))
-ax5.add_patch(plt.Polygon(triangle_right,color='white'))
-pg.show(interface2,ax=ax5)
-ax5.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
-ax5.set_ylim(-30, 0)
-ax5.set_xlim(0,100)
+plot_resistivity(ax=ax5, mesh=mgr3.paraDomain, mgr=mgr3, data=data, title='Structured constrained inverted resistivity profile', **kw)
+# Plot the residual profile
 # Calculate the resistivity relative difference
+kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
+                  label='Relative resistivity difference \n(%)',
+                  xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
 # Subplot 4:Normal mesh resistivity residual
-residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
-pg.viewer.showMesh(grid,data=residual_normal_grid,ax=ax4,
-                    label='Relative resistivity difference (%)',
-                #     logScale=True, 
-                    cMap='bwr', 
-                    cMin=-35,cMax=35,
-                    xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
-ax4.set_title('Normal mesh resistivity difference profile',fontweight="bold", size=16)
-ax4.add_patch(plt.Polygon(triangle_left,color='white'))
-ax4.add_patch(plt.Polygon(triangle_right,color='white'))
-ax4.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
-ax4.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
-ax4.set_ylim(-30, 0)
-ax4.set_xlim(0,100)
 
+def plot_residual(ax, grid, data, title, **kw_compare):
+    pg.viewer.showMesh(grid,data,ax=ax, **kw_compare)
+    ax.set_title(title,fontweight="bold", size=16)
+    # plot a triangle
+    triangle_left = np.array([[left, -depth], [depth, -depth], [left,0], [left, -depth]])
+    triangle_right = np.array([[right, -depth], [right-depth, -depth], [right,0], [right, depth]])
+    ax.add_patch(plt.Polygon(triangle_left,color='white'))
+    ax.add_patch(plt.Polygon(triangle_right,color='white'))
+    ax.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
+    ax.set_ylim(-30, 0)
+    ax.set_xlim(0,100)
+
+residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
+plot_residual(ax=ax4, grid=grid, data=residual_normal_grid, title='Normal mesh resistivity difference profile', **kw_compare)
 # Subplot 6:Layered mesh resistivity residual
 residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
-pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax6,
-                    label='Relative resistivity difference (%)',
-                #     logScale=True, 
-                    cMap='bwr', 
-                    cMin=-35,cMax=35,
-                    xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
-                    )
-ax6.set_title('Structured constrained resistivity difference profile',fontweight="bold", size=16)
-ax6.add_patch(plt.Polygon(triangle_left,color='white'))
-ax6.add_patch(plt.Polygon(triangle_right,color='white'))
-pg.show(interface2,ax=ax6)
-ax6.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
-ax6.set_ylim(-30, 0)
-
+plot_residual(ax=ax6, grid=grid, data=residual_layer_grid, title='Structured constrained resistivity difference profile', **kw_compare)
 
 # fig.savefig(join('results','synthetic_compare.png'), dpi=300, bbox_inches='tight', transparent=True)
 # %%
 # # Plot profile using contour
-# mesh_X, mesh_Y = np.meshgrid(mesh_x,mesh_y)
-# fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(16,8),constrained_layout=True)
-# ax2.axis('off')
-# # Subplot 1:Original resistivity model
-# pg.viewer.showMesh(mesh, rhomap,ax=ax1,
-#                     label='Resistivity ($\Omega m$)',
-#                     logScale=True,cMap='jet',cMin=50,cMax=150,
-#                     xlabel="x (m)", ylabel="z (m)",orientation = 'vertical')
-# ax1.set_title('Original resistivity model profile')
+# class StretchOutNormalize(plt.Normalize):
+#     def __init__(self, vmin=None, vmax=None, low=None, up=None, clip=False):
+#         self.low = low
+#         self.up = up
+#         plt.Normalize.__init__(self, vmin, vmax, clip)
 
-# rho_contour = np.log10(np.reshape( pg.interpolate(mesh2, mgr2.model, grid.positions()) ,(len(mesh_y),len(mesh_x))))
-# clim = [50, 150]
-# levels = 32
-# contour_plot = ax3.contourf(mesh_X, mesh_Y, rho_contour,
-#             levels = levels,
-#             cmap='jet'
-#             ,cMin=clim[0],cMax=clim[0]
-#             )
-# ax3.set_title('Normal mesh inverted resistivity profile')
-# ax3.set_ylim(-30, 0)
-# divider = make_axes_locatable(ax3)
-# cbaxes = divider.append_axes("right", size="3%", pad=.1)
-# m = plt.cm.ScalarMappable(cmap=plt.cm.jet)
-# m.set_array(rho_contour)
-# m.set_clim(np.log10(clim[0]),np.log10(clim[1]))
-# cb = plt.colorbar(m, boundaries=np.linspace(np.log10(clim[0]),np.log10(clim[1]), levels),cax=cbaxes)
-# cb.ax.set_yticks(np.linspace(np.log10(clim[0]),np.log10(clim[1]),5))
-# cb.ax.set_yticklabels(['{:.0f}'.format(10**x) for x in cb.ax.get_yticks()])
-# cb.ax.set_ylabel('Resistivity ($\Omega - m$)')
-# # plot a triangle
-# triangle_left = np.array([[left, -depth], [depth, -depth], [left,0], [left, -depth]])
-# triangle_right = np.array([[right, -depth], [right-depth, -depth], [right,0], [right, depth]])
-# ax3.add_patch(plt.Polygon(triangle_left,color='white'))
-# ax3.add_patch(plt.Polygon(triangle_right,color='white'))
+#     def __call__(self, value, clip=None):
+#         x, y = [self.vmin, self.low, self.up, self.vmax], [0, 0.5-1e-9, 0.5+1e-9, 1]
+#         return np.ma.masked_array(np.interp(value, x, y))
 
-# # Subplot 5:structured constrained grid 
-# rho_contour = np.log10(np.reshape( pg.interpolate(mgr3.paraDomain, mgr3.model, grid.positions()) ,(len(mesh_y),len(mesh_x))))
-# clim = [50, 150]
-# levels = 32
-# contour_plot = ax5.contourf(mesh_X, mesh_Y, rho_contour,
-#             levels = levels,
-#             cmap='jet'
-#             ,cMin=clim[0],cMax=clim[0]
-#             )
-# ax5.set_title('Structured constrained inverted resistivity profile')
-# ax5.set_ylim(-30, 0)
-# divider = make_axes_locatable(ax5)
-# cbaxes = divider.append_axes("right", size="3%", pad=.1)
-# m = plt.cm.ScalarMappable(cmap=plt.cm.jet)
-# m.set_array(rho_contour)
-# m.set_clim(np.log10(clim[0]),np.log10(clim[1]))
-# cb = plt.colorbar(m, boundaries=np.linspace(np.log10(clim[0]),np.log10(clim[1]), levels),cax=cbaxes)
-# cb.ax.set_yticks(np.linspace(np.log10(clim[0]),np.log10(clim[1]),5))
-# cb.ax.set_yticklabels(['{:.0f}'.format(10**x) for x in cb.ax.get_yticks()])
-# cb.ax.set_ylabel('Resistivity ($\Omega - m$)')
-# # plot a triangle
-# triangle_left = np.array([[left, -depth], [depth, -depth], [left,0], [left, -depth]])
-# triangle_right = np.array([[right, -depth], [right-depth, -depth], [right,0], [right, depth]])
+# clim = [-50, 50]
+# midnorm=StretchOutNormalize(vmin=clim[0], vmax=clim[1], low=-5, up=5)
+
+# X,Y = np.meshgrid(mesh_x,mesh_y)
+# dry_normal_diff = ((dry_normal_grid - rho_grid)/rho_grid)*100
+# dry_normal_diff_pos = pg.interpolate(grid, dry_normal_diff, grid.positions())
+# dry_normal_mesh = np.reshape(dry_normal_diff_pos,(len(mesh_y),len(mesh_x)))
+# ax5.contourf(X,Y,dry_normal_mesh,
+#             levels = 128,
+#             cmap='bwr',
+#             norm=midnorm)
+# ax5.set_title('Wet resistivity model with normal mesh compared to TRUE', fontweight="bold", size=16)
+# ax5.set_xlabel('Distance (m)')
+# ax5.set_ylabel('Depth (m)')
 # ax5.add_patch(plt.Polygon(triangle_left,color='white'))
 # ax5.add_patch(plt.Polygon(triangle_right,color='white'))
-# pg.show(interface1,ax=ax5)
-# pg.show(interface2,ax=ax5)
-# ax5.set_ylim(-30, 0)
+# ax5.plot(pg.x(artif1.nodes()),pg.y(artif1.nodes()),'--k')
+# ax5.plot(pg.x(artif2.nodes()),pg.y(artif2.nodes()),'--k')
+# ax5.set_xlim([0, 128])
+# ax5.set_ylim([-30, 0])
+# ax5.set_aspect('equal')
+
+# divider = make_axes_locatable(ax5)
+# cbaxes = divider.append_axes("right", size="4%", pad=.15)
+# m = plt.cm.ScalarMappable(cmap=plt.cm.bwr,norm=midnorm)
+# m.set_array(dry_normal_mesh)
+# m.set_clim(clim[0],clim[1])
+# cb = plt.colorbar(m,
+#                 boundaries=np.linspace(clim[0],clim[1], 128),
+#                 cax=cbaxes)
+# cb_ytick = np.linspace(clim[0],clim[1],5)
+# cb.ax.set_yticks(cb_ytick)
+# cb.ax.set_yticklabels(['{:.0f}'.format(x) for x in cb_ytick])
+# cb.ax.set_ylabel('Relative resistivity difference\n(%)')
