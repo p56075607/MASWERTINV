@@ -140,7 +140,7 @@ for w_s in np.linspace(0,1,5):
         # with default settings.
         inv3.run(data['rhoa'], data['err'],lam=100)
         invs.append(inv3)
-# %% Plot the results by resistivity and the residual profile  
+# %% Plot the results by resistivity and the residual_struc profile  
 white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100], 
                         [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
                         [c1.node(12).pos()[0], 80],[0, 80]])
@@ -148,7 +148,7 @@ white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100],
 kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
                   label='Relative resistivity difference (%)',
                   xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
-# Comparesion of the results by the residual profile
+# Comparesion of the results by the residual_struc profile
 # Re-interpolate the grid
 mesh_x = np.linspace(0,c1.node(12).pos()[0],500)
 mesh_y = np.linspace(80,c1.node(12).pos()[1],100)
@@ -169,14 +169,15 @@ for i, w_s in enumerate(np.linspace(0,1,5)):
         ax.add_patch(plt.Polygon(white_polygon,color='white'))
         ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
         ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
-        ax.text(80,85,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
+        ax.text(60,85,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
                 invs[i].relrms(), invs[i].chi2())
-                ,fontweight='bold', size=10)
+                ,fontweight='bold', size=16)
         
         # Compare profiles
         rho_constrain = pg.interpolate(mesh3, invs[i].model, grid.cellCenters())
         ax = plt.subplot(5, 2, 2*i+2)
-        pg.show(grid, ((rho_constrain-rho_grid)/rho_grid)*100, ax=ax, **kw_compare)
+        residual_struc = ((rho_constrain-rho_grid)/rho_grid)*100
+        pg.show(grid, residual_struc, ax=ax, **kw_compare)
         ax.set_xlabel(ax.get_xlabel(),fontsize=13)
         ax.set_ylabel(ax.get_ylabel(),fontsize=13)
         ax.set_title('Resistivity difference profile $W_s={:.2f}$'.format(w_s),fontweight='bold', size=16)
@@ -184,6 +185,9 @@ for i, w_s in enumerate(np.linspace(0,1,5)):
         ax.add_patch(plt.Polygon(white_polygon,color='white'))
         ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
         ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
+        ax.text(60,85,'Avg. difference: {:.2f}%'.format(
+            np.nansum(abs(residual_struc))/len(residual_struc))
+            ,fontweight="bold", size=16)  
 
 
 fig.savefig(join('results','slope_synthetic_Ws.png'), dpi=300, bbox_inches='tight', transparent=True)
