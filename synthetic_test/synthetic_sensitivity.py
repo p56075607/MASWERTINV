@@ -140,7 +140,7 @@ for n, depth_i in enumerate(layer_depth):
     interface2 = mt.createLine(start=[left_edge, depth_i], end=[right_edge, depth_i])
     plc += interface2
     mesh3 = mt.createMesh(plc,
-                        area=10,
+                        area=1,
                         quality=33)    # Quality mesh generation with no angles smaller than X degrees
     # Creat the ERT Manager
     mgr3 = ert.ERTManager(data)
@@ -149,7 +149,7 @@ for n, depth_i in enumerate(layer_depth):
     inv3 = mgr3.invert(mesh=mesh3, lam=100, verbose=True)
     mgrs.append(mgr3)
 # %% Plot the results by resistivity and the residual profile    
-plt.figure(figsize=(18, 20),constrained_layout=False)
+fig = plt.figure(figsize=(18, 20),constrained_layout=False)
 for n, depth_i in enumerate(layer_depth):
     interface2 = mt.createLine(start=[left_edge, depth_i], end=[right_edge, depth_i])
     ax = plt.subplot(len(layer_depth), 2, 2*n+1)
@@ -160,7 +160,7 @@ for n, depth_i in enumerate(layer_depth):
                         label='Resistivity ($\Omega m$)',
                         logScale=True,cMap='jet',cMin=50,cMax=150,
                         xlabel='Distance (m)', ylabel='Depth (m)',orientation = 'vertical')
-    ax.set_title('Structured constrained inverted resistivity profile',fontweight="bold", size=16)
+    ax.set_title('Structured constrained inverted resistivity profile\nInterface at {:.0f} m'.format(depth_i),fontweight="bold", size=16)
     triangle_left = np.array([[left, -depth], [depth, -depth], [left,0], [left, -depth]])
     triangle_right = np.array([[right, -depth], [right-depth, -depth], [right,0], [right, depth]])
     ax.add_patch(plt.Polygon(triangle_left,color='white'))
@@ -169,8 +169,8 @@ for n, depth_i in enumerate(layer_depth):
     ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
     ax.set_ylim(-30, 0)
     ax.set_xlim(0,100)
-    ax.text(5,-25,'Interface at {:.0f} m\nRRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
-        depth_i, mgrs[n].inv.relrms(), mgrs[n].inv.chi2())
+    ax.text(5,-25,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
+        mgrs[n].inv.relrms(), mgrs[n].inv.chi2())
             ,fontweight="bold", size=16)
     # Calculate the resistivity relative difference
     # Subplot:Layered mesh resistivity residual
@@ -183,37 +183,35 @@ for n, depth_i in enumerate(layer_depth):
                         cMin=-35,cMax=35,
                         xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
                         )
-    ax.set_title('Structured constrained resistivity difference profile',fontweight="bold", size=16)
+    ax.set_title('Structured constrained resistivity difference profile\nInterface at {:.0f} m'.format(depth_i),fontweight="bold", size=16)
     ax.add_patch(plt.Polygon(triangle_left,color='white'))
     ax.add_patch(plt.Polygon(triangle_right,color='white'))
     pg.show(interface2,ax=ax)
     ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
     ax.set_ylim(-30, 0)    
     ax.set_xlim(0,100)
-    ax.text(5,-25,'Interface at {:.0f} m'.format(depth_i)
+    ax.text(5,-25,'Avg. difference: {:.2f}%'.format(
+            sum(abs(residual_layer_grid))/len(residual_layer_grid))
             ,fontweight="bold", size=16)  
-# # %%
-# # Calculate the resistivity relative difference
-# # Subplot:Layered mesh resistivity residual
-# fig, axs = plt.subplots(nrows=5, ncols=1, figsize=(16, 12),constrained_layout=True)
+fig.savefig(join('results','layer_sensitivity.png'), dpi=300, bbox_inches='tight')
 
-# for depth_i, ax in zip(layer_depth, axs.ravel()):
-#     interface2 = mt.createLine(start=[left_edge, depth_i], end=[right_edge, depth_i])
-#     residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
-#     pg.viewer.showMesh(grid,data=residual_layer_grid,ax=ax,
-#                         label='Relative resistivity difference (%)',
-#                     #     logScale=True, 
-#                         cMap='bwr', 
-#                         cMin=-35,cMax=35,
-#                         xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
-#                         )
-#     ax.set_title('Structured constrained resistivity difference profile',fontweight="bold", size=16)
-#     ax.add_patch(plt.Polygon(triangle_left,color='white'))
-#     ax.add_patch(plt.Polygon(triangle_right,color='white'))
-#     pg.show(interface2,ax=ax)
-#     ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
-#     ax.set_ylim(-30, 0)    
-#     ax.set_xlim(0,100)
-#     ax.text(5,-25,'Interface at {:.0f} m'.format(depth_i)
-#             ,fontweight="bold", size=16)
-
+#%%
+# Show all the mesh and the interface
+plc = mt.createParaMeshPLC(data, paraDepth=30, boundary=0.5)
+for n, depth_i in enumerate(layer_depth):
+    interface2 = mt.createLine(start=[left_edge, depth_i], end=[right_edge, depth_i])
+    plc += interface2
+mesh_all = mt.createMesh(plc,
+                    area=1,
+                    quality=33)   
+ax,_ = pg.show(mesh_all,label='Mesh interface at different depth',showMesh=True)
+interface_long = mt.createLine(start=[left, -5], end=[right, -5])
+ax.plot(pg.x(interface_long.nodes()),pg.y(interface_long.nodes()),'--b',label='True model interface')
+ax.set_xlim([0,100])
+ax.set_ylim([-20,0])
+ax.set_xlabel('Distance (m)',fontsize=13)
+ax.set_ylabel('Depth (m)',fontsize=13)
+ax.set_yticks(np.linspace(-20,0,5))
+ax.legend()
+fig = ax.figure
+fig.savefig(join('results','layer_sensitivity_interface.png'), dpi=300, bbox_inches='tight')
