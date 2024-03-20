@@ -72,7 +72,7 @@ def synthetic_2lyr_runInversion(data, left, right, depth, test_name, mesh2, mesh
     mgr3 = ert.ERTManager(data)
     # Run the inversion with the preset data. The Inversion mesh will be created
     # with default settings.
-    inv3 = mgr3.invert(mesh=mesh3, lam=100, verbose=True)
+    inv3 = mgr3.invert(mesh=mesh3, lam=lam, verbose=True)
     
     return mgr2, mgr3
 
