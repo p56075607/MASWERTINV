@@ -199,7 +199,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
             triangle_right = np.array([[right, -depth], [right-depth, -depth], [right,0], [right, depth]])
             ax.add_patch(plt.Polygon(triangle_left,color='white'))
             ax.add_patch(plt.Polygon(triangle_right,color='white'))
-            ax.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
+            
             ax.text(5,-25,'Avg. difference: {:.2f}%'.format(
                     np.nansum(abs(data))/len(data))
                     ,fontweight="bold", size=16)
@@ -208,9 +208,11 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
 
         residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
         plot_residual(ax=ax4, grid=grid, data=residual_normal_grid, title='Normal mesh resistivity difference profile', **kw_compare)
+        ax4.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
         # Subplot 6:Layered mesh resistivity residual
         residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
         plot_residual(ax=ax6, grid=grid, data=residual_layer_grid, title='Structured constrained resistivity difference profile', **kw_compare)
+        ax6.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
         if save_plot == True:
             fig.savefig(join('output',test_name,'Compare.png'), dpi=300, bbox_inches='tight', transparent=True)
 
