@@ -51,7 +51,7 @@ def synthetic_2lyr_creatModel(rhomap):
     plc = mt.createParaMeshPLC(data, paraDepth=depth, boundary=0.5)
     left_edge = left+30
     right_edge = right-30
-    interface2 = mt.createLine(start=[left_edge, -11], end=[right_edge, -11])
+    interface2 = mt.createLine(start=[left_edge, -4], end=[right_edge, -4])
     plc = interface2 + plc
 
     mesh3 = mt.createMesh(plc,
@@ -77,6 +77,23 @@ def synthetic_2lyr_runInversion(data, left, right, depth, test_name, mesh2, mesh
     
     return mgr2, mgr3
 
+
+# %%
+# Test the HSR scheme mud with sand model
+rhomap = [[1, 1000.],
+          [2, 50.],
+          [3, 100.]]
+test_name = 'synthetic_2lyr_mudwithsand'
+lam=100
+plot_result = True
+hsr_parameter = []
+
+mesh, data, mesh2, mesh3, left, right, depth, interface2 = synthetic_2lyr_creatModel(rhomap)
+hsr_parameter.append([mesh, data, mesh2, mesh3, left, right, depth, interface2])
+#%%
+mgr2, mgr3 = synthetic_2lyr_runInversion(data, left, right, depth, test_name, mesh2, mesh3, lam)
+hsr_parameter.append([mgr2, mgr3])
+# %%
 def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, interface2, left, right, depth, test_name, lam, plot_result, save_plot):
     # Export the information about the inversion
     def save_inv_result_and_info(output_ph, mgr, lam):
@@ -275,26 +292,4 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
 
     return mgr2, mgr3
 save_plot = True
-synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, interface2, left, right, depth, test_name, lam, plot_result, save_plot)
-
-# %%
-# Test the HSR scheme mud with sand model
-rhomap = [[1, 1000.],
-          [2, 50.],
-          [3, 100.]]
-test_name = 'synthetic_2lyr_mudwithsand'
-lam=100
-plot_result = True
-save_plot = False
-hsr_parameter = []
-
-mesh, data, mesh2, mesh3, left, right, depth, interface2 = synthetic_2lyr_creatModel(rhomap)
-hsr_parameter.append([mesh, data, mesh2, mesh3, left, right, depth, interface2])
-#%%
-mgr2, mgr3 = synthetic_2lyr_runInversion(data, left, right, depth, test_name, mesh2, mesh3, lam)
-hsr_parameter.append([mgr2, mgr3])
-# %%
-# pickle.dump([mesh, data, mesh2, mesh3, left, right, depth, interface2,mgr2, mgr3], open(join('output',test_name,'hsr_parameter.pkl'), 'wb'))
-# hsr_parameter = pickle.load(open(join('output',test_name,'hsr_parameter.pkl'), 'rb'))
-# %%
 synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, interface2, left, right, depth, test_name, lam, plot_result, save_plot)
