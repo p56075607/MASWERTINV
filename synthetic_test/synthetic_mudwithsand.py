@@ -49,8 +49,8 @@ def synthetic_2lyr_creatModel(rhomap):
 
     # Inversion using layer-based mesh
     plc = mt.createParaMeshPLC(data, paraDepth=depth, boundary=0.5)
-    left_edge = left+30
-    right_edge = right-30
+    left_edge = left+15
+    right_edge = right-15
     interface2 = mt.createLine(start=[left_edge, -4], end=[right_edge, -4])
     plc = interface2 + plc
 
@@ -80,7 +80,7 @@ def synthetic_2lyr_runInversion(data, left, right, depth, test_name, mesh2, mesh
 
 # %%
 # Test the HSR scheme mud with sand model
-rhomap = [[1, 1000.],
+rhomap = [[1, 500.],
           [2, 50.],
           [3, 100.]]
 test_name = 'synthetic_2lyr_mudwithsand'
@@ -122,7 +122,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
 
     # Plot the process results
     # Take a look at the mesh and the resistivity distribution
-    kw = dict(cMin=50, cMax=1000, logScale=True, cMap='jet',
+    kw = dict(cMin=50, cMax=500, logScale=True, cMap='jet',
             xlabel='Distance (m)', ylabel='Depth (m)', 
             label=pg.unit('res'), orientation='vertical')
     if plot_result == True:
