@@ -126,6 +126,7 @@ fig.savefig(join('results','slope_layered_mesh.png'), dpi=300, bbox_inches='tigh
 # Creat the ERT inversion object list
 invs = []
 for w_s in np.linspace(0,1,5):
+        
         # Set such an interface weight of a FORWARD OPERATOR
         fop = ert.ERTModelling()
         fop.setMesh(mesh3)
@@ -140,6 +141,14 @@ for w_s in np.linspace(0,1,5):
         # with default settings.
         inv3.run(data['rhoa'], data['err'],lam=100)
         invs.append(inv3)
+        '''
+        # The same inversion setting can be done with the ERTManager
+        mgr3 = ert.ERTManager(data)
+        mgr3.fop.setMesh(mesh3)
+        mgr3.fop.regionManager().setInterfaceConstraint(2, 0.5)
+        mgr3.invert(lam=100, verbose=True)
+        invs.append(mgr3)
+        '''
 # %% Plot the results by resistivity and the residual_struc profile  
 white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100], 
                         [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
@@ -190,4 +199,4 @@ for i, w_s in enumerate(np.linspace(0,1,5)):
             ,fontweight="bold", size=16)  
 
 
-fig.savefig(join('results','slope_synthetic_Ws.png'), dpi=300, bbox_inches='tight', transparent=True)
+# fig.savefig(join('results','slope_synthetic_Ws.png'), dpi=300, bbox_inches='tight', transparent=True)
