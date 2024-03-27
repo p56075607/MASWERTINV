@@ -10,7 +10,7 @@ from pygimli.physics import ert
 plt.rcParams['font.family'] = 'Times New Roman'#'Microsoft Sans Serif'
 
 # %% Model setup
-c1 = mt.createCircle(pos=(0, 310),radius=200, start=1.5*np.pi, end=1.7*np.pi,isClosed=True, marker = 2, area=1)
+c1 = mt.createCircle(pos=(0, 310),radius=200, start=1.5*np.pi, end=1.7*np.pi,isClosed=True, marker = 3, area=1)
 ax,_ = pg.show(c1)
 
 # We start by creating a three-layered slope (The model is taken from the BSc
@@ -19,14 +19,8 @@ ax,_ = pg.show(c1)
 slope = mt.createPolygon([[0.0, 80], [0.0, 110], 
                           [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
                           [c1.node(12).pos()[0], 80]],
-                          isClosed=True)
-geom = slope + c1
-# ax, _ = pg.show(geom)
-
-mesh = mt.createMesh(geom,area=1, quality=33)
-pg.show(mesh, markers=True, showMesh=True)
-
-# %%
+                          isClosed=True, marker = 2)
+#%%
 # Synthetic data generation
 # Create a Dipole Dipole ('dd') measuring scheme with 25 electrodes.
 electrode_x = np.linspace(start=0, stop=c1.node(12).pos()[0], num=25)
@@ -43,21 +37,29 @@ ax.legend(loc='right')
 ax.set_aspect('equal')
 fig = ax.figure
 fig.savefig(join('results','slope_electrode.png'), dpi=300, bbox_inches='tight')
-# %%
+
 scheme = ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
                            schemeName='dd')
-
+# Create a mesh for the finite element modelling with appropriate mesh quality.
+plc = mt.createParaMeshPLC(scheme, paraDepth=30, boundary=1)
+c3 = mt.createCircle(pos=(0, 310),radius=200, start=1.5*np.pi, end=1.7*np.pi,isClosed=False, marker = 3, area=1)
+plc = plc + c3
+plc.regionMarker(2).setPos([60, 125])
+plc.regionMarker(1).setPos([60, 100])
+meshI = mt.createMesh(plc, quality=33)
+pg.show(meshI,markers=True)
 # %%
 # Create a map to set resistivity values in the appropriate regions
 # [[regionNumber, resistivity], [regionNumber, resist３ivity], [...]
-rhomap = [[1, 150.],
+rhomap = [[0, 150.],
+          [1, 150.],
           [2, 50.]]
 
 # Take a look at the mesh and the resistivity distribution
 kw = dict(cMin=50, cMax=150, logScale=True, cMap='jet',
           xlabel='Distance (m)', ylabel='Depth (m)', 
           label=pg.unit('res'), orientation='vertical')
-ax, cb = pg.show(mesh, 
+ax, cb = pg.show(meshI, 
         data=rhomap, 
         showMesh=True,**kw)
 ax.set_xlabel(ax.get_xlabel(),fontsize=13)
@@ -65,8 +67,7 @@ ax.set_ylabel(ax.get_ylabel(),fontsize=13)
 cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
 fig = ax.figure
 fig.savefig(join('results','slope.png'), dpi=300, bbox_inches='tight')
-# save the mesh to binary file
-mesh.save('mesh_slope.bms') # can be load by pg.load()
+
 # %%
 # Perform the modelling with the mesh and the measuring scheme itself
 # and return a data container with apparent resistivity values,
@@ -74,7 +75,7 @@ mesh.save('mesh_slope.bms') # can be load by pg.load()
 # The noise is also added to the data. Here 1% plus 1µV.
 # Note, we force a specific noise seed as we want reproducable results for
 # testing purposes.
-data = ert.simulate(mesh, scheme=scheme, res=rhomap, noiseLevel=1,
+data = ert.simulate(meshI, scheme=scheme, res=rhomap, noiseLevel=1,
                     noiseAbs=1e-6, 
                     seed=1337) #seed : numpy.random seed for repeatable noise in synthetic experiments 
 
@@ -94,9 +95,11 @@ data.save('slope.dat')
 
 
 # %% Inversion using normal mesh (no prior layer scheme)
-mesh2 = mt.createMesh(slope, 
-                     area=10,
-                     quality=33)    # Quality mesh generation with no angles smaller than X degrees 
+# mesh2 = mt.createMesh(slope, 
+#                      area=10,
+#                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
+plc = mt.createParaMeshPLC(scheme, paraDepth=30, boundary=1)
+mesh2 = mt.createMesh(plc, quality=33)
 ax,_ = pg.show(mesh2,markers=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
@@ -111,17 +114,28 @@ inv2 = mgr2.invert(mesh=mesh2, lam=100, verbose=True)
 mgr2.showResultAndFit(cMap='jet')
 
 # %% Inversion using two-layer based mesh
+plc = mt.createParaMeshPLC(scheme, paraDepth=30, boundary=1)
 c2 = mt.createCircle(pos=(0, 310),radius=200, start=1.53*np.pi, end=1.67*np.pi,isClosed=False, 
                      boundaryMarker=2) # The marker set to 2 from 1 to be distinguished from the outer boundary
-plc = slope + c2
+plc = plc + c2
 mesh3 = mt.createMesh(plc,
-                      area=1,
+                #       area=1,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
 ax,_ = pg.show(mesh3,markers=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
 fig.savefig(join('results','slope_layered_mesh.png'), dpi=300, bbox_inches='tight',transparent=True)
+# %%
+mgr3 = ert.ERTManager(data)
+# Run the inversion with the preset data. The Inversion mesh will be created
+# with default settings.
+inv3 = mgr3.invert(mesh=mesh3, lam=100, verbose=True)
+mgr3.showResultAndFit(cMap='jet')
+# %%
+# Plot the inverted profile
+ax, cb = pg.show(mgr3.paraDomain,mgr3.model,**kw)
+ax.set_xlim([0, c1.node(12).pos()[0]])
 # %% Inversion with the ERTModelling and testing different structural constrain weighting values
 # Creat the ERT inversion object list
 invs = []
