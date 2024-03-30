@@ -8,6 +8,8 @@ import pygimli as pg
 import pygimli.meshtools as mt
 from pygimli.physics import ert
 plt.rcParams['font.family'] = 'Times New Roman'#'Microsoft Sans Serif'
+from pygimli.frameworks import PriorModelling
+from pygimli.viewer.mpl import draw1DColumn
 
 # %% Model setup
 c1 = mt.createCircle(pos=(0, 310),radius=200, start=1.5*np.pi, end=1.7*np.pi,isClosed=True, marker = 3, area=1)
@@ -20,6 +22,9 @@ slope = mt.createPolygon([[0.0, 80], [0.0, 110],
                           [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
                           [c1.node(12).pos()[0], 80]],
                           isClosed=True, marker = 2)
+geometry = c1 + slope
+mesh = mt.createMesh(geometry, quality=33)
+pg.show(mesh,markers=True)
 #%%
 # Synthetic data generation
 # Create a Dipole Dipole ('dd') measuring scheme with 25 electrodes.
@@ -46,11 +51,11 @@ c3 = mt.createCircle(pos=(0, 310),radius=200, start=1.5*np.pi, end=1.7*np.pi,isC
 plc = plc + c3
 plc.regionMarker(2).setPos([60, 125])
 plc.regionMarker(1).setPos([60, 100])
-meshI = mt.createMesh(plc, quality=33)
+meshI = mt.createMesh(plc, quality=33.5)
 pg.show(meshI,markers=True)
 # %%
 # Create a map to set resistivity values in the appropriate regions
-# [[regionNumber, resistivity], [regionNumber, resist３ivity], [...]
+# [[regionNumber, resistivity], [regionNumber, resistivity], [...]
 rhomap = [[0, 150.],
           [1, 150.],
           [2, 50.]]
@@ -95,11 +100,9 @@ data.save('slope.dat')
 
 
 # %% Inversion using normal mesh (no prior layer scheme)
-# mesh2 = mt.createMesh(slope, 
-#                      area=10,
-#                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 plc = mt.createParaMeshPLC(scheme, paraDepth=30, boundary=1)
-mesh2 = mt.createMesh(plc, quality=33)
+mesh2 = mt.createMesh(plc,
+                      area=10, quality=33)
 ax,_ = pg.show(mesh2,markers=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
@@ -119,9 +122,9 @@ c2 = mt.createCircle(pos=(0, 310),radius=200, start=1.53*np.pi, end=1.67*np.pi,i
                      boundaryMarker=2) # The marker set to 2 from 1 to be distinguished from the outer boundary
 plc = plc + c2
 mesh3 = mt.createMesh(plc,
-                #       area=1,
+                #       area=10,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
-ax,_ = pg.show(mesh3,markers=True)
+ax,_ = pg.show(mesh3,markers=True,showMesh=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
@@ -140,7 +143,7 @@ ax.set_xlim([0, c1.node(12).pos()[0]])
 # Creat the ERT inversion object list
 invs = []
 for w_s in np.linspace(0,1,5):
-        
+        '''
         # Set such an interface weight of a FORWARD OPERATOR
         fop = ert.ERTModelling()
         fop.setMesh(mesh3)
@@ -162,7 +165,7 @@ for w_s in np.linspace(0,1,5):
         mgr3.fop.regionManager().setInterfaceConstraint(2, 0.5)
         mgr3.invert(lam=100, verbose=True)
         invs.append(mgr3)
-        '''
+        
 # %% Plot the results by resistivity and the residual_struc profile  
 white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100], 
                         [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
@@ -177,27 +180,29 @@ mesh_x = np.linspace(0,c1.node(12).pos()[0],500)
 mesh_y = np.linspace(80,c1.node(12).pos()[1],100)
 grid = pg.createGrid(x=mesh_x,y=mesh_y )
 # Creat a pg RVector with the length of the cell of mesh and the value of rhomap
-rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
+rho = pg.Vector(np.array([row[1] for row in rhomap[1:3]])[mesh.cellMarkers() - 2] )
 # Distinguish the region of the mesh and insert the value of rhomap
 rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
 
 fig = plt.figure(figsize=(16, 20),constrained_layout=True)
 for i, w_s in enumerate(np.linspace(0,1,5)):
         ax = plt.subplot(5, 2, 2*i+1)
-        pg.show(mesh3, invs[i].model, ax=ax, **kw)
+        pg.show(invs[i].paraDomain, invs[i].model, ax=ax, **kw)
         ax.set_xlabel(ax.get_xlabel(),fontsize=13)
         ax.set_ylabel(ax.get_ylabel(),fontsize=13)
         ax.set_title('Inverted resistivity profile $W_s={:.2f}$'.format(w_s),fontweight='bold', size=16)
         cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
         ax.add_patch(plt.Polygon(white_polygon,color='white'))
         ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
-        ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
+        ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'-k')
         ax.text(60,85,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
-                invs[i].relrms(), invs[i].chi2())
+                invs[i].inv.relrms(), invs[i].inv.chi2())
                 ,fontweight='bold', size=16)
+        ax.set_xlim(0,c1.node(12).pos()[0])
+        ax.set_ylim(80,c1.node(12).pos()[1])
         
         # Compare profiles
-        rho_constrain = pg.interpolate(mesh3, invs[i].model, grid.cellCenters())
+        rho_constrain = pg.interpolate(invs[i].paraDomain, invs[i].model, grid.cellCenters())
         ax = plt.subplot(5, 2, 2*i+2)
         residual_struc = ((rho_constrain-rho_grid)/rho_grid)*100
         pg.show(grid, residual_struc, ax=ax, **kw_compare)
@@ -207,10 +212,74 @@ for i, w_s in enumerate(np.linspace(0,1,5)):
         cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
         ax.add_patch(plt.Polygon(white_polygon,color='white'))
         ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
-        ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
+        ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'-k')
         ax.text(60,85,'Avg. difference: {:.2f}%'.format(
             np.nansum(abs(residual_struc))/len(residual_struc))
             ,fontweight="bold", size=16)  
 
 
 # fig.savefig(join('results','slope_synthetic_Ws.png'), dpi=300, bbox_inches='tight', transparent=True)
+
+# %%
+# Plot the results of normal mesh
+fig = plt.figure(figsize=(16, 4),constrained_layout=True)
+ax = plt.subplot(1, 2, 1)
+pg.show(mgr2.paraDomain, mgr2.model, ax=ax, **kw)
+ax.set_xlabel(ax.get_xlabel(),fontsize=13)
+ax.set_ylabel(ax.get_ylabel(),fontsize=13)
+ax.set_title('Inverted resistivity profile of normal mesh',fontweight='bold', size=16)
+cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
+ax.add_patch(plt.Polygon(white_polygon,color='white'))
+ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
+ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'-k')
+ax.text(60,85,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
+        mgr2.inv.relrms(), mgr2.inv.chi2())
+        ,fontweight='bold', size=16)
+ax.set_xlim(0,c1.node(12).pos()[0])
+ax.set_ylim(80,c1.node(12).pos()[1])
+# Compare profiles
+ax = plt.subplot(1, 2, 2)
+rho_constrain = pg.interpolate(mgr2.paraDomain, mgr2.model, grid.cellCenters())
+residual_struc = ((rho_constrain-rho_grid)/rho_grid)*100
+pg.show(grid, residual_struc, ax=ax, **kw_compare)
+ax.set_xlabel(ax.get_xlabel(),fontsize=13)
+ax.set_ylabel(ax.get_ylabel(),fontsize=13)
+ax.set_title('Resistivity difference profile of normal mesh',fontweight='bold', size=16)
+cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
+ax.add_patch(plt.Polygon(white_polygon,color='white'))
+ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
+ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'-k')
+ax.text(60,85,'Avg. difference: {:.2f}%'.format(
+    np.nansum(abs(residual_struc))/len(residual_struc)
+    ),fontweight="bold", size=16)
+
+# %%
+def calculate_y_from_line(x1, y1, x2, y2, x):
+        return y1 + (y2 - y1) / (x2 - x1) * (x - x1)
+ymax = calculate_y_from_line(0, 110, c1.node(12).pos()[0], c1.node(12).pos()[1], 60)
+y = np.linspace(90,ymax,100)
+x = 60*np.ones(len(y))
+posVec = [pg.Pos(pos) for pos in zip(x, y)]
+para = pg.Mesh(mgr2.paraDomain)  # make a copy
+para.setCellMarkers(pg.IVector(para.cellCount()))
+fopDP = PriorModelling(para, posVec)
+
+fig, ax = plt.subplots()
+resSmooth = fopDP(mgr2.model)
+# Find the index of mesh_x that is closest to specific_x_value
+index = np.abs(pg.x(c2.nodes()) - 60).argmin()
+# Extract the corresponding values of the entire y column
+y_interface = pg.y(c2.nodes())[index]
+index2 = np.abs(y - y_interface).argmin()
+true_rho = np.ones(len(y))
+for i in range(len(true_rho)):
+        if i < index2:
+                true_rho[i] = 150
+        else:
+                true_rho[i] = 50
+ax.semilogx(list(resSmooth), y, label="Normal mesh")
+ax.semilogx(list(true_rho), y, label="True value")
+ax.set_xlabel(r"$\rho$ ($\Omega$m)")
+ax.set_ylabel("depth (m)")
+ax.grid(which='both',linestyle='--',linewidth=0.5)
+ax.legend()
