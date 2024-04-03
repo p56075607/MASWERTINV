@@ -15,7 +15,7 @@ import pickle
 def synthetic_2lyr_creatModel(rhomap):
     left = 280
     right = 410
-    depth = 30
+    depth = 20
     world = mt.createWorld(start=[left, 0], end=[right, -depth],
                         layers=[-4, -11], 
                         worldMarker=True)
@@ -44,7 +44,7 @@ def synthetic_2lyr_creatModel(rhomap):
     # Inversion using normal mesh (no prior layer scheme)
     world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
     mesh2 = mt.createMesh(world2, 
-                        area=1,
+                        area=10,
                         quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 
     # Inversion using layer-based mesh
@@ -55,7 +55,7 @@ def synthetic_2lyr_creatModel(rhomap):
     plc = interface2 + plc
 
     mesh3 = mt.createMesh(plc,
-                        area=1, smooth=True,
+                        area=10, smooth=True,
                         quality=33)    # Quality mesh generation with no angles smaller than X degrees
     
     return mesh, data, mesh2, mesh3, left, right, depth, interface2
@@ -155,7 +155,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
         # Plot the layered mesh
         ax,_ = pg.show(mesh3)
         ax.set_xlim([left,right])
-        ax.set_ylim(-30, 0)
+        ax.set_ylim(-20, 0)
         ax.set_xlabel('Distance (m)',fontsize=13)
         ax.set_ylabel('Depth (m)',fontsize=13)
         fig = ax.figure
@@ -190,7 +190,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
             ax.add_patch(plt.Polygon(triangle_right,color='white'))
             ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
             ax.set_title(title,fontweight="bold", size=16)
-            ax.set_ylim(-30, 0)
+            ax.set_ylim(-20, 0)
             ax.set_xlim([left,right])
             ax.text(left+5,-27.5,'RRMS: {:.2f}%'.format(
                     mgr.inv.relrms())
@@ -229,7 +229,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
             # ax.text(left+5,-25,'Avg. difference: {:.2f}%'.format(
             #         np.nansum(abs(picked))/len(picked))
             #         ,fontweight="bold", size=16)
-            ax.set_ylim(-30, 0)
+            ax.set_ylim(-20, 0)
             ax.set_xlim([left,right])
 
         def plot_residual_contour(ax, grid, data, title,mesh_x,mesh_y, **kw_compare):
@@ -260,7 +260,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
             triangle_right = np.array([[right, -depth], [right-depth, -depth], [right,0], [right, depth]])
             ax.add_patch(plt.Polygon(triangle_left,color='white'))
             ax.add_patch(plt.Polygon(triangle_right,color='white'))
-            ax.set_ylim(-30, 0)
+            ax.set_ylim(-20, 0)
             ax.set_xlim([left,right])
             ax.set_aspect('equal')
 
@@ -291,5 +291,30 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
             fig.savefig(join('output',test_name,'Compare.png'), dpi=300, bbox_inches='tight', transparent=True)
 
     return mgr2, mgr3
-save_plot = True
+save_plot = False
 synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, interface2, left, right, depth, test_name, lam, plot_result, save_plot)
+# %%
+# Plot the 1D model
+from pygimli.frameworks import PriorModelling
+from pygimli.viewer.mpl import drawModel1D
+
+y = np.linspace(-20,0,100)
+x = 340*np.ones(len(y))
+def extractModel(x,y,mgr):
+    posVec = [pg.Pos(pos) for pos in zip(x, y)]
+    para = pg.Mesh(mgr.paraDomain)  # make a copy
+    para.setCellMarkers(pg.IVector(para.cellCount()))
+    fopDP = PriorModelling(para, posVec)
+    return fopDP(mgr.model)
+
+
+fig, ax = plt.subplots()
+resSmooth = extractModel(x, y, mgr2)
+resConstraint = extractModel(x, y, mgr3)
+
+synThk = [4, 7, 9,5]
+synRes = [500, 50, 100,100]
+drawModel1D(ax, synThk, synRes, plot='semilogx', color='C3', label="synth")
+ax.semilogx(list(resSmooth), -y, label="Normal mesh")
+ax.semilogx(list(resConstraint), -y, label="Structured constrained")
+ax.set_ylim(20,0)
