@@ -15,7 +15,7 @@ import pickle
 def synthetic_2lyr_creatModel(rhomap):
     left = 280
     right = 410
-    depth = 20
+    depth = 30
     world = mt.createWorld(start=[left, 0], end=[right, -depth],
                         layers=[-4, -11], 
                         worldMarker=True)
@@ -44,7 +44,7 @@ def synthetic_2lyr_creatModel(rhomap):
     # Inversion using normal mesh (no prior layer scheme)
     world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
     mesh2 = mt.createMesh(world2, 
-                        area=10,
+                        area=1,
                         quality=33)    # Quality mesh generation with no angles smaller than X degrees 
 
     # Inversion using layer-based mesh
@@ -55,7 +55,7 @@ def synthetic_2lyr_creatModel(rhomap):
     plc = interface2 + plc
 
     mesh3 = mt.createMesh(plc,
-                        area=10, smooth=True,
+                        area=1, smooth=True,
                         quality=33)    # Quality mesh generation with no angles smaller than X degrees
     
     return mesh, data, mesh2, mesh3, left, right, depth, interface2
@@ -131,6 +131,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
                 data=rhomap, **kw, showMesh=False) 
         ax.set_xlabel('Distance (m)',fontsize=13)
         ax.set_ylabel('Depth (m)',fontsize=13)
+        ax.set_ylim(-20, 0)
         fig = ax.figure
         if save_plot == True:
             fig.savefig(join('output',test_name,'True_model.png'), dpi=300, bbox_inches='tight')
@@ -148,6 +149,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
         ax,_ = pg.show(mesh2)
         ax.set_xlabel('Distance (m)',fontsize=13)
         ax.set_ylabel('Depth (m)',fontsize=13)
+        ax.set_ylim(-20, 0)
         fig = ax.figure
         if save_plot == True:
             fig.savefig(join('output',test_name,'Normal_mesh.png'), dpi=300, bbox_inches='tight')
@@ -174,11 +176,12 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
         rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
         
 
-        fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(20,8),constrained_layout=True)
+        fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(26/1.3,8/1.3),constrained_layout=True)
         ax2.axis('off')
         # Subplot 1:Original resistivity model
         pg.viewer.showMesh(mesh, rhomap,ax=ax1, **kw)
         ax1.set_title('Original resistivity model profile',fontweight="bold", size=16)
+        ax1.set_ylim(-20, 0)
 
         def plot_resistivity(ax, mesh, mgr, data, title, **kw):
             pg.viewer.showMesh(mesh, mgr.model,coverage=mgr.coverage(),#grid,data=rho_normal_grid,
@@ -291,7 +294,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
             fig.savefig(join('output',test_name,'Compare.png'), dpi=300, bbox_inches='tight', transparent=True)
 
     return mgr2, mgr3
-save_plot = False
+save_plot = True
 synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, interface2, left, right, depth, test_name, lam, plot_result, save_plot)
 # %%
 # Plot the 1D model
@@ -307,6 +310,29 @@ def extractModel(x,y,mgr):
     fopDP = PriorModelling(para, posVec)
     return fopDP(mgr.model)
 
+# Find the index of mesh_x that is closest to specific_x_value
+index = np.abs(pg.x(interface2.nodes()) - 340).argmin()
+# Extract the corresponding values of the entire y column
+y_interface = pg.y(interface2.nodes())[index]
+index2 = np.abs(y - y_interface).argmin()
+
+interface3 = mt.createLine(start=[295, -4], end=[395, -4])
+y_interface3 = pg.y(interface3.nodes())[index]
+index3 = np.abs(y - y_interface3).argmin()
+
+true_rho = np.ones(len(y))
+for i in range(len(true_rho)):
+        if i < index3:
+                true_rho[i] = 100
+        elif i > index2:
+             true_rho[i] = 500
+        else:
+                true_rho[i] = 50
+
+# Claculate relative root mean square error of 2 variants
+rrms = lambda x, y: np.sqrt(np.sum(((x - y)/y)**2) / len(x)) * 100
+rrms_normal = rrms(extractModel(x, y, mgr2), true_rho)
+rrms_layer = rrms(extractModel(x, y, mgr3), true_rho)
 
 fig, ax = plt.subplots()
 resSmooth = extractModel(x, y, mgr2)
@@ -314,7 +340,10 @@ resConstraint = extractModel(x, y, mgr3)
 
 synThk = [4, 7, 9,5]
 synRes = [500, 50, 100,100]
-drawModel1D(ax, synThk, synRes, plot='semilogx', color='C3', label="synth")
-ax.semilogx(list(resSmooth), -y, label="Normal mesh")
-ax.semilogx(list(resConstraint), -y, label="Structured constrained")
+drawModel1D(ax, synThk, synRes, plot='semilogx', color='C3', label="Synthetic model")
+ax.semilogx(list(resSmooth), -y, label="Normal mesh, RRMS={:.2f} %".format(rrms_normal))
+ax.semilogx(list(resConstraint), -y, label="Structured constrained, RRMS={:.2f} %".format(rrms_layer))
 ax.set_ylim(20,0)
+ax.legend()
+print(ax.get_xticklabels())
+fig.savefig(join('output', test_name, '1D_model.png'), dpi=300, bbox_inches='tight', transparent=True)
