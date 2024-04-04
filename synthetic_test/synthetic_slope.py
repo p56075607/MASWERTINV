@@ -21,7 +21,7 @@ ax,_ = pg.show(c1)
 slope = mt.createPolygon([[0.0, 80], [0.0, 110], 
                           [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
                           [c1.node(12).pos()[0], 80]],
-                          isClosed=True, marker = 2)
+                          isClosed=True, marker = 2,boundaryMarker=-1)
 geometry = c1 + slope
 mesh = mt.createMesh(geometry, quality=33)
 pg.show(mesh,markers=True)
@@ -100,10 +100,20 @@ data.save('slope.dat')
 
 
 # %% Inversion using normal mesh (no prior layer scheme)
-plc = mt.createParaMeshPLC(scheme, paraDepth=30, boundary=1)
-mesh2 = mt.createMesh(plc,
-                      area=10, quality=33)
-ax,_ = pg.show(mesh2,markers=True)
+surface = mt.createLine(start=[0.0, 110], end=[c1.node(12).pos()[0], c1.node(12).pos()[1]],boundaryMarker=-1,marker=2)
+slope = mt.createPolygon([[0.0, 110],[0.0, 80], [c1.node(12).pos()[0], 80],
+                          [c1.node(12).pos()[0], c1.node(12).pos()[1]]],
+                          isClosed=False, marker = 2,boundaryMarker=1)
+world = surface + slope
+world.addRegionMarker(pos=[60, 100],marker=2)
+# world.regionMarker(2).setPos([60, 100])
+# ax,_ = pg.show(world,markers=True,showMesh=True)
+
+mesh_world = mt.createMesh(world, area=2)
+
+mesh2 = mt.appendTriangleBoundary(mesh_world,xbound=100,ybound=100,marker=1)#, quality=33)
+ax,_ = pg.show(mesh_world,markers=False,showMesh=True)
+
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
@@ -117,23 +127,31 @@ inv2 = mgr2.invert(mesh=mesh2, lam=100, verbose=True)
 mgr2.showResultAndFit(cMap='jet')
 
 # %% Inversion using two-layer based mesh
-plc = mt.createParaMeshPLC(scheme, paraDepth=30, boundary=1)
+surface = mt.createLine(start=[0.0, 110], end=[c1.node(12).pos()[0], c1.node(12).pos()[1]],boundaryMarker=-1,marker=2)
+slope = mt.createPolygon([[0.0, 110],[0.0, 80], [c1.node(12).pos()[0], 80],
+                          [c1.node(12).pos()[0], c1.node(12).pos()[1]]],
+                          isClosed=False, marker = 2,boundaryMarker=1)
 c2 = mt.createCircle(pos=(0, 310),radius=200, start=1.53*np.pi, end=1.67*np.pi,isClosed=False, 
-                     boundaryMarker=2) # The marker set to 2 from 1 to be distinguished from the outer boundary
-plc = plc + c2
-mesh3 = mt.createMesh(plc,
-                #       area=10,
-                      quality=33)    # Quality mesh generation with no angles smaller than X degrees
-ax,_ = pg.show(mesh3,markers=True,showMesh=True)
+                     boundaryMarker=2, marker = 2)
+world = surface + slope + c2
+world.addRegionMarker(pos=[60, 100],marker=2)
+# world.regionMarker(2).setPos([60, 100])
+# ax,_ = pg.show(world,markers=True,showMesh=True)
+
+mesh_world = mt.createMesh(world, area=2)
+
+appended_world = mt.appendTriangleBoundary(mesh_world,xbound=100,ybound=100,marker=1)#, quality=33)
+ax,_ = pg.show(mesh_world,markers=False,showMesh=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
 fig.savefig(join('results','slope_layered_mesh.png'), dpi=300, bbox_inches='tight',transparent=True)
+
 # %%
 mgr3 = ert.ERTManager(data)
 # Run the inversion with the preset data. The Inversion mesh will be created
 # with default settings.
-inv3 = mgr3.invert(mesh=mesh3, lam=100, verbose=True)
+inv3 = mgr3.invert(mesh=appended_world, lam=100, verbose=True)
 mgr3.showResultAndFit(cMap='jet')
 # %%
 # Plot the inverted profile
@@ -161,8 +179,8 @@ for w_s in np.linspace(0,1,5):
         '''
         # The same inversion setting can be done with the ERTManager
         mgr3 = ert.ERTManager(data)
-        mgr3.fop.setMesh(mesh3)
-        mgr3.fop.regionManager().setInterfaceConstraint(2, 0.5)
+        mgr3.setMesh(appended_world)
+        mgr3.fop.regionManager().setInterfaceConstraint(2, w_s)
         mgr3.invert(lam=100, verbose=True)
         invs.append(mgr3)
         
@@ -183,7 +201,7 @@ grid = pg.createGrid(x=mesh_x,y=mesh_y )
 rho = pg.Vector(np.array([row[1] for row in rhomap[1:3]])[mesh.cellMarkers() - 2] )
 # Distinguish the region of the mesh and insert the value of rhomap
 rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
-
+# %%
 fig = plt.figure(figsize=(16, 20),constrained_layout=True)
 for i, w_s in enumerate(np.linspace(0,1,5)):
         ax = plt.subplot(5, 2, 2*i+1)
@@ -218,7 +236,7 @@ for i, w_s in enumerate(np.linspace(0,1,5)):
             ,fontweight="bold", size=16)  
 
 
-# fig.savefig(join('results','slope_synthetic_Ws.png'), dpi=300, bbox_inches='tight', transparent=True)
+fig.savefig(join('results','slope_synthetic_Ws.png'), dpi=300, bbox_inches='tight', transparent=True)
 
 # %%
 # Plot the results of normal mesh
@@ -231,7 +249,7 @@ ax.set_title('Inverted resistivity profile of normal mesh',fontweight='bold', si
 cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
 ax.add_patch(plt.Polygon(white_polygon,color='white'))
 ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
-ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'-k')
+ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
 ax.text(60,85,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
         mgr2.inv.relrms(), mgr2.inv.chi2())
         ,fontweight='bold', size=16)
@@ -248,11 +266,11 @@ ax.set_title('Resistivity difference profile of normal mesh',fontweight='bold', 
 cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
 ax.add_patch(plt.Polygon(white_polygon,color='white'))
 ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
-ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'-k')
+ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'--k')
 ax.text(60,85,'Avg. difference: {:.2f}%'.format(
     np.nansum(abs(residual_struc))/len(residual_struc)
     ),fontweight="bold", size=16)
-
+fig.savefig(join('results', 'slope_synthetic_normal.png'), dpi=300, bbox_inches='tight', transparent=True)
 # %%
 def calculate_y_from_line(x1, y1, x2, y2, x):
         return y1 + (y2 - y1) / (x2 - x1) * (x - x1)
@@ -263,9 +281,9 @@ posVec = [pg.Pos(pos) for pos in zip(x, y)]
 para = pg.Mesh(mgr2.paraDomain)  # make a copy
 para.setCellMarkers(pg.IVector(para.cellCount()))
 fopDP = PriorModelling(para, posVec)
+resSmooth = fopDP(mgr2.model)
 
 fig, ax = plt.subplots()
-resSmooth = fopDP(mgr2.model)
 # Find the index of mesh_x that is closest to specific_x_value
 index = np.abs(pg.x(c2.nodes()) - 60).argmin()
 # Extract the corresponding values of the entire y column
@@ -277,9 +295,16 @@ for i in range(len(true_rho)):
                 true_rho[i] = 150
         else:
                 true_rho[i] = 50
-ax.semilogx(list(resSmooth), y, label="Normal mesh")
-ax.semilogx(list(true_rho), y, label="True value")
+# ax.semilogx(list(resSmooth), y,'--k', label="Normal mesh")
+ax.semilogx(list(true_rho), y,'-k', label="True value")
+for i, w_s in enumerate(np.linspace(0,1,5)):
+        posVec = [pg.Pos(pos) for pos in zip(x, y)]
+        para = pg.Mesh(invs[i].paraDomain)  # make a copy
+        para.setCellMarkers(pg.IVector(para.cellCount()))
+        fopDP = PriorModelling(para, posVec)
+        ax.semilogx(fopDP(invs[i].model),y,label='$W_s = {:.2f}$'.format(w_s))
 ax.set_xlabel(r"$\rho$ ($\Omega$m)")
 ax.set_ylabel("depth (m)")
 ax.grid(which='both',linestyle='--',linewidth=0.5)
 ax.legend()
+fig.savefig(join('results','slope_synthetic_Ws_1D.png'), dpi=300, bbox_inches='tight', transparent=True)
