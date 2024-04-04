@@ -192,8 +192,93 @@ for n, depth_i in enumerate(layer_depth):
     ax.set_xlim(0,100)
     ax.text(5,-25,'Avg. difference: {:.2f}%'.format(
             sum(abs(residual_layer_grid))/len(residual_layer_grid))
-            ,fontweight="bold", size=16)  
+            ,fontweight="bold", size=16)
 fig.savefig(join('results','layer_sensitivity.png'), dpi=300, bbox_inches='tight')
+# %%
+# Plot the results of normal mesh
+kw = dict(cMin=50, cMax=150, logScale=True, cMap='jet',
+          xlabel='Distance (m)', ylabel='Depth (m)', 
+          label=pg.unit('res'), orientation='vertical')
+fig = plt.figure(figsize=(16, 4),constrained_layout=True)
+ax = plt.subplot(1, 2, 1)
+_,cb = pg.show(mgr2.paraDomain, mgr2.model, ax=ax, **kw)
+ax.set_xlabel(ax.get_xlabel(),fontsize=13)
+ax.set_ylabel(ax.get_ylabel(),fontsize=13)
+ax.set_title('Inverted resistivity profile of normal mesh',fontweight='bold', size=16)
+cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
+ax.add_patch(plt.Polygon(triangle_left,color='white'))
+ax.add_patch(plt.Polygon(triangle_right,color='white'))
+ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
+ax.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
+ax.text(5,-25,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
+        mgr2.inv.relrms(), mgr2.inv.chi2())
+        ,fontweight='bold', size=16)
+ax.set_ylim(-30, 0)
+ax.set_xlim(0,100)
+# Compare profiles
+kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
+                  label='Relative resistivity difference (%)',
+                  xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
+ax = plt.subplot(1, 2, 2)
+rho_constrain = pg.interpolate(mgr2.paraDomain, mgr2.model, grid.cellCenters())
+residual_struc = ((rho_constrain-rho_grid)/rho_grid)*100
+pg.show(grid, residual_struc, ax=ax, **kw_compare)
+ax.set_xlabel(ax.get_xlabel(),fontsize=13)
+ax.set_ylabel(ax.get_ylabel(),fontsize=13)
+ax.set_title('Resistivity difference profile of normal mesh',fontweight='bold', size=16)
+cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
+ax.add_patch(plt.Polygon(triangle_left,color='white'))
+ax.add_patch(plt.Polygon(triangle_right,color='white'))
+ax.plot(pg.x(interface2.nodes()),pg.y(interface2.nodes()),'--k')
+ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
+ax.text(5,-25,'Avg. difference: {:.2f}%'.format(
+    np.nansum(abs(residual_struc))/len(residual_struc)
+    ),fontweight="bold", size=16)
+ax.set_ylim(-30, 0)
+ax.set_xlim(0,100)
+# %%
+from pygimli.frameworks import PriorModelling
+y = np.linspace(-30,0,100)
+x = 50*np.ones(len(y))
+posVec = [pg.Pos(pos) for pos in zip(x, y)]
+para = pg.Mesh(mgr2.paraDomain)  # make a copy
+para.setCellMarkers(pg.IVector(para.cellCount()))
+fopDP = PriorModelling(para, posVec)
+resSmooth = fopDP(mgr2.model)
+
+fig, ax = plt.subplots()
+interface2 = mt.createLine(start=[left_edge, -5], end=[right_edge, -5])
+# Find the index of mesh_x that is closest to specific_x_value
+index = np.abs(pg.x(interface2.nodes()) - 50).argmin()
+# Extract the corresponding values of the entire y column
+y_interface = pg.y(interface2.nodes())[index]
+index2 = np.abs(y - y_interface).argmin()
+
+interface3 = mt.createLine(start=[left_edge, -15], end=[right_edge, -15])
+y_interface3 = pg.y(interface3.nodes())[index]
+index3 = np.abs(y - y_interface3).argmin()
+
+true_rho = np.ones(len(y))
+for i in range(len(true_rho)):
+        if i > index2:
+            true_rho[i] = 50
+        elif i < index3:
+            true_rho[i] = 150
+        else:
+            true_rho[i] = 100
+ax.semilogx(list(resSmooth), y,'--k', label="Normal mesh")
+ax.semilogx(list(true_rho), y,'-k',linewidth=3, label="True value")
+for i, w_s in enumerate(np.linspace(0,1,5)):
+        posVec = [pg.Pos(pos) for pos in zip(x, y)]
+        para = pg.Mesh(mgrs[i].paraDomain)  # make a copy
+        para.setCellMarkers(pg.IVector(para.cellCount()))
+        fopDP = PriorModelling(para, posVec)
+        ax.semilogx(fopDP(mgrs[i].model),y,label='$W_s = {:.2f}$'.format(w_s))
+ax.set_xlabel(r"$\rho$ ($\Omega$m)")
+ax.set_ylabel("depth (m)")
+ax.grid(which='both',linestyle='--',linewidth=0.5)
+ax.legend()
+fig.savefig(join('results','synthetic_depth_sensitivity_1D.png'), dpi=300, bbox_inches='tight', transparent=True)
 
 #%%
 # Show all the mesh and the interface
