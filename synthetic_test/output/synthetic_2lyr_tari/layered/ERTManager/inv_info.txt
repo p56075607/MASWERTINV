@@ -1,6 +1,6 @@
 ## Final result ##
-rrms:2.119670141302713 %
-chi2:4.292981637426761
+rrms:2.119286191272522 %
+chi2:4.289916277446026
 ## Inversion parameters ##
 use lam:100
 ## Iteration ##

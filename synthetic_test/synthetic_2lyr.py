@@ -236,6 +236,38 @@ tari_parameter.append([mgr2, mgr3])
 synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, interface2, left, right, depth, test_name, lam, plot_result, save_plot)
 
 # %%
+from pygimli.frameworks import PriorModelling
+y = np.linspace(-30,0,100)
+x = 50*np.ones(len(y))
+def extractModel(x,y,mgr):
+    posVec = [pg.Pos(pos) for pos in zip(x, y)]
+    para = pg.Mesh(mgr.paraDomain)  # make a copy
+    para.setCellMarkers(pg.IVector(para.cellCount()))
+    fopDP = PriorModelling(para, posVec)
+    return fopDP(mgr.model)
+
+# True model
+posVec = [pg.Pos(pos) for pos in zip(x, y)]
+para = pg.Mesh(mesh)  # make a copy
+para.setCellMarkers(pg.IVector(para.cellCount()))
+fopDP = PriorModelling(para, posVec)
+rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
+true_rho = fopDP(rho)
+
+# Claculate relative root mean square error of 2 variants
+rrms = lambda x, y: np.sqrt(np.sum(((x - y)/y)**2) / len(x)) * 100
+rrms_normal = rrms(extractModel(x, y, mgr2), true_rho)
+rrms_layer = rrms(extractModel(x, y, mgr3), true_rho)
+
+fig, ax = plt.subplots()
+resSmooth = extractModel(x, y, mgr2)
+resConstraint = extractModel(x, y, mgr3)
+ax.semilogx(list(true_rho), y, label="True model")
+ax.semilogx(list(resSmooth), y, label="Normal mesh, RRMS={:.2f} %".format(rrms_normal))
+ax.semilogx(list(resConstraint), y, label="Structured constrained, RRMS={:.2f} %".format(rrms_layer))
+ax.legend()
+
+# %%
 # Test the synthetic_2ly HSR model
 rhomap = [[1, 1500.],
           [2, 500.],

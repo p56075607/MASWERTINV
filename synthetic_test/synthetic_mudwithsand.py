@@ -320,14 +320,13 @@ interface3 = mt.createLine(start=[295, -4], end=[395, -4])
 y_interface3 = pg.y(interface3.nodes())[index]
 index3 = np.abs(y - y_interface3).argmin()
 
-true_rho = np.ones(len(y))
-for i in range(len(true_rho)):
-        if i < index3:
-                true_rho[i] = 100
-        elif i > index2:
-             true_rho[i] = 500
-        else:
-                true_rho[i] = 50
+# True model
+posVec = [pg.Pos(pos) for pos in zip(x, y)]
+para = pg.Mesh(mesh)  # make a copy
+para.setCellMarkers(pg.IVector(para.cellCount()))
+fopDP = PriorModelling(para, posVec)
+rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
+true_rho = fopDP(rho)
 
 # Claculate relative root mean square error of 2 variants
 rrms = lambda x, y: np.sqrt(np.sum(((x - y)/y)**2) / len(x)) * 100

@@ -247,25 +247,13 @@ fopDP = PriorModelling(para, posVec)
 resSmooth = fopDP(mgr2.model)
 
 fig, ax = plt.subplots()
-interface2 = mt.createLine(start=[left_edge, -5], end=[right_edge, -5])
-# Find the index of mesh_x that is closest to specific_x_value
-index = np.abs(pg.x(interface2.nodes()) - 50).argmin()
-# Extract the corresponding values of the entire y column
-y_interface = pg.y(interface2.nodes())[index]
-index2 = np.abs(y - y_interface).argmin()
-
-interface3 = mt.createLine(start=[left_edge, -15], end=[right_edge, -15])
-y_interface3 = pg.y(interface3.nodes())[index]
-index3 = np.abs(y - y_interface3).argmin()
-
-true_rho = np.ones(len(y))
-for i in range(len(true_rho)):
-        if i > index2:
-            true_rho[i] = 50
-        elif i < index3:
-            true_rho[i] = 150
-        else:
-            true_rho[i] = 100
+# True model
+posVec = [pg.Pos(pos) for pos in zip(x, y)]
+para = pg.Mesh(mesh)  # make a copy
+para.setCellMarkers(pg.IVector(para.cellCount()))
+fopDP = PriorModelling(para, posVec)
+rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
+true_rho = fopDP(rho)
 ax.semilogx(list(resSmooth), y,'--k', label="Normal mesh")
 ax.semilogx(list(true_rho), y,'-k',linewidth=3, label="True value")
 for i, w_s in enumerate(np.linspace(0,1,5)):
