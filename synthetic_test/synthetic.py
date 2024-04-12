@@ -106,9 +106,9 @@ fig = ax.figure
 # %% Inversion using normal mesh (no prior layer scheme)
 world2 = mt.createWorld(start=[left, 0], end=[right, -depth], worldMarker=True)
 mesh2 = mt.createMesh(world2, 
-                     area=10,
+                     area=1,
                      quality=33)    # Quality mesh generation with no angles smaller than X degrees 
-ax,_ = pg.show(mesh2)
+ax,_ = pg.show(mesh2,markers=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
@@ -131,7 +131,7 @@ plc = interface2 + plc
 pg.show(plc, markers=True)
 
 mesh3 = mt.createMesh(plc,
-                      area=10,
+                      area=1,
                       quality=33)    # Quality mesh generation with no angles smaller than X degrees
 ax,_ = pg.show(mesh3)
 ax.set_xlim(0, 100)
@@ -234,7 +234,7 @@ ax6.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
 ax6.set_ylim(-30, 0)
 
 
-# fig.savefig(join('results','synthetic_compare.png'), dpi=300, bbox_inches='tight', transparent=True)
+fig.savefig(join('results','synthetic_compare.png'), dpi=300, bbox_inches='tight', transparent=True)
 # %%
 # # Plot profile using contour
 # mesh_X, mesh_Y = np.meshgrid(mesh_x,mesh_y)

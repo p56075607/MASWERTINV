@@ -316,9 +316,18 @@ index = np.abs(pg.x(interface2.nodes()) - 340).argmin()
 y_interface = pg.y(interface2.nodes())[index]
 index2 = np.abs(y - y_interface).argmin()
 
-interface3 = mt.createLine(start=[295, -4], end=[395, -4])
+interface3 = mt.createLine(start=[295, -11], end=[395, -11])
 y_interface3 = pg.y(interface3.nodes())[index]
 index3 = np.abs(y - y_interface3).argmin()
+
+true_rho2 = np.ones(len(y))
+for i in range(len(true_rho2)):
+        if i < index3:
+                true_rho2[i] = 100
+        elif i > index2:
+             true_rho2[i] = 500
+        else:
+                true_rho2[i] = 50
 
 # True model
 posVec = [pg.Pos(pos) for pos in zip(x, y)]
@@ -340,9 +349,25 @@ resConstraint = extractModel(x, y, mgr3)
 synThk = [4, 7, 9,5]
 synRes = [500, 50, 100,100]
 drawModel1D(ax, synThk, synRes, plot='semilogx', color='C3', label="Synthetic model")
+# ax.semilogx(list(true_rho), -y, color='C3', label="Synthetic model")
 ax.semilogx(list(resSmooth), -y, label="Normal mesh, RRMS={:.2f} %".format(rrms_normal))
 ax.semilogx(list(resConstraint), -y, label="Structured constrained, RRMS={:.2f} %".format(rrms_layer))
 ax.set_ylim(20,0)
-ax.legend()
+# ax.legend()
+ax.grid(which='both',linestyle='--',linewidth=0.5)
 print(ax.get_xticklabels())
 fig.savefig(join('output', test_name, '1D_model.png'), dpi=300, bbox_inches='tight', transparent=True)
+# %%
+mws_resSmooth = []
+mws_resConstraint = []
+mws_True = []
+for i,y_i in enumerate(y):
+    if y_i < -11:
+        mws_resSmooth.append(resSmooth[i])
+        mws_resConstraint.append(resConstraint[i])
+        mws_True.append(true_rho[i])
+rrms = lambda x, y: np.sqrt(np.sum(((x - y)/y)**2) / 100) * 100
+print(rrms(np.array(mws_resSmooth), np.array(mws_True)))
+print(rrms(np.array(mws_resConstraint), np.array(mws_True)))
+
+# %%

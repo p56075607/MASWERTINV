@@ -180,7 +180,7 @@ for n, depth_i in enumerate(layer_depth):
                         label='Relative resistivity difference (%)',
                     #     logScale=True, 
                         cMap='bwr', 
-                        cMin=-35,cMax=35,
+                        cMin=-50,cMax=50,
                         xlabel="x (m)", ylabel="z (m)",orientation = 'vertical',
                         )
     ax.set_title('Structured constrained resistivity difference profile\nInterface at {:.0f} m'.format(depth_i),fontweight="bold", size=16)
@@ -256,12 +256,12 @@ rho = pg.Vector(np.array([row[1] for row in rhomap])[mesh.cellMarkers() - 1] )
 true_rho = fopDP(rho)
 ax.semilogx(list(resSmooth), y,'--k', label="Normal mesh")
 ax.semilogx(list(true_rho), y,'-k',linewidth=3, label="True value")
-for i, w_s in enumerate(np.linspace(0,1,5)):
+for n, depth_i in enumerate(layer_depth):
         posVec = [pg.Pos(pos) for pos in zip(x, y)]
-        para = pg.Mesh(mgrs[i].paraDomain)  # make a copy
+        para = pg.Mesh(mgrs[n].paraDomain)  # make a copy
         para.setCellMarkers(pg.IVector(para.cellCount()))
         fopDP = PriorModelling(para, posVec)
-        ax.semilogx(fopDP(mgrs[i].model),y,label='$W_s = {:.2f}$'.format(w_s))
+        ax.semilogx(fopDP(mgrs[n].model),y,label='Depth = {:.2f}'.format(depth_i))
 ax.set_xlabel(r"$\rho$ ($\Omega$m)")
 ax.set_ylabel("depth (m)")
 ax.grid(which='both',linestyle='--',linewidth=0.5)
