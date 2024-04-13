@@ -294,7 +294,7 @@ def synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, int
             fig.savefig(join('output',test_name,'Compare.png'), dpi=300, bbox_inches='tight', transparent=True)
 
     return mgr2, mgr3
-save_plot = True
+save_plot = False
 synthetic_2lyr_plotResults(mgr2, mgr3, rhomap, mesh, data, mesh2, mesh3, interface2, left, right, depth, test_name, lam, plot_result, save_plot)
 # %%
 # Plot the 1D model

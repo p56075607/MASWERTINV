@@ -41,7 +41,7 @@ ax.set_ylabel('Depth (m)',fontsize=13)
 ax.legend(loc='right')
 ax.set_aspect('equal')
 fig = ax.figure
-fig.savefig(join('results','slope_electrode.png'), dpi=300, bbox_inches='tight')
+# fig.savefig(join('results','slope_electrode.png'), dpi=300, bbox_inches='tight')
 
 scheme = ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
                            schemeName='dd')
@@ -71,7 +71,7 @@ ax.set_xlabel(ax.get_xlabel(),fontsize=13)
 ax.set_ylabel(ax.get_ylabel(),fontsize=13)
 cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
 fig = ax.figure
-fig.savefig(join('results','slope.png'), dpi=300, bbox_inches='tight')
+# fig.savefig(join('results','slope.png'), dpi=300, bbox_inches='tight')
 
 # %%
 # Perform the modelling with the mesh and the measuring scheme itself
@@ -94,9 +94,9 @@ ax, _ = pg.show(data,cMap='jet')
 ax.set_xlabel('Distance (m)')
 ax.set_ylabel('Array type and \nElectrode separation (m)')
 fig = ax.figure
-fig.savefig(join('results','slope_data.png'), dpi=300, bbox_inches='tight',transparent=True)
-# save the data for further use
-data.save('slope.dat')
+# fig.savefig(join('results','slope_data.png'), dpi=300, bbox_inches='tight',transparent=True)
+# # save the data for further use
+# data.save('slope.dat')
 
 
 # %% Inversion using normal mesh (no prior layer scheme)
@@ -117,7 +117,7 @@ ax,_ = pg.show(mesh_world,markers=False,showMesh=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
-fig.savefig(join('results','slope_normal_mesh.png'), dpi=300, bbox_inches='tight',transparent=True)
+# fig.savefig(join('results','slope_normal_mesh.png'), dpi=300, bbox_inches='tight',transparent=True)
 # %% Inversion with the ERTManager
 # Creat the ERT Manager
 mgr2 = ert.ERTManager(data)
@@ -133,7 +133,11 @@ slope = mt.createPolygon([[0.0, 110],[0.0, 80], [c1.node(12).pos()[0], 80],
                           isClosed=False, marker = 2,boundaryMarker=1)
 c2 = mt.createCircle(pos=(0, 310),radius=200, start=1.53*np.pi, end=1.67*np.pi,isClosed=False, 
                      boundaryMarker=2, marker = 2)
-world = surface + slope + c2
+c4 = mt.createCircle(pos=(0, 312),radius=200, start=1.53*np.pi, end=1.67*np.pi,isClosed=False, 
+                     boundaryMarker=2, marker = 2)
+c5 = mt.createCircle(pos=(0, 308),radius=200, start=1.53*np.pi, end=1.67*np.pi,isClosed=False, 
+                     boundaryMarker=2, marker = 2)
+world = surface + slope + c2+c4+c5
 world.addRegionMarker(pos=[60, 100],marker=2)
 # world.regionMarker(2).setPos([60, 100])
 # ax,_ = pg.show(world,markers=True,showMesh=True)
@@ -145,45 +149,29 @@ ax,_ = pg.show(mesh_world,markers=False,showMesh=True)
 ax.set_xlabel('Distance (m)',fontsize=13)
 ax.set_ylabel('Depth (m)',fontsize=13)
 fig = ax.figure
-fig.savefig(join('results','slope_layered_mesh.png'), dpi=300, bbox_inches='tight',transparent=True)
+# fig.savefig(join('results','slope_layered_mesh.png'), dpi=300, bbox_inches='tight',transparent=True)
 
 # %%
-mgr3 = ert.ERTManager(data)
-# Run the inversion with the preset data. The Inversion mesh will be created
-# with default settings.
-inv3 = mgr3.invert(mesh=appended_world, lam=100, verbose=True)
-mgr3.showResultAndFit(cMap='jet')
-# %%
-# Plot the inverted profile
-ax, cb = pg.show(mgr3.paraDomain,mgr3.model,**kw)
-ax.set_xlim([0, c1.node(12).pos()[0]])
-# %% Inversion with the ERTModelling and testing different structural constrain weighting values
-# Creat the ERT inversion object list
-invs = []
-for w_s in np.linspace(0,1,5):
-        '''
-        # Set such an interface weight of a FORWARD OPERATOR
-        fop = ert.ERTModelling()
-        fop.setMesh(mesh3)
-        fop.regionManager().setInterfaceConstraint(2, w_s)
-        fop.setData(data)
-        inv3 = pg.Inversion(fop=fop, verbose=True)
-        transLog = pg.trans.TransLog()
-        inv3.modelTrans = transLog
-        inv3.dataTrans = transLog
+layer_depth = np.linspace(308, 312, 3)
 
-        # Run the inversion with the preset data. The Inversion mesh will be created
-        # with default settings.
-        inv3.run(data['rhoa'], data['err'],lam=100)
-        invs.append(inv3)
-        '''
-        # The same inversion setting can be done with the ERTManager
-        mgr3 = ert.ERTManager(data)
-        mgr3.setMesh(appended_world)
-        mgr3.fop.regionManager().setInterfaceConstraint(2, w_s)
-        mgr3.invert(lam=100, verbose=True)
-        invs.append(mgr3)
-        
+mgrs = []
+for n, depth_i in enumerate(layer_depth):
+    surface = mt.createLine(start=[0.0, 110], end=[c1.node(12).pos()[0], c1.node(12).pos()[1]],boundaryMarker=-1,marker=2)
+    slope = mt.createPolygon([[0.0, 110],[0.0, 80], [c1.node(12).pos()[0], 80],
+                        [c1.node(12).pos()[0], c1.node(12).pos()[1]]],
+                        isClosed=False, marker = 2,boundaryMarker=1)
+    c2 = mt.createCircle(pos=(0, depth_i),radius=200, start=1.53*np.pi, end=1.67*np.pi,isClosed=False, 
+                     boundaryMarker=2, marker = 2)
+    world = surface + slope + c2
+    world.addRegionMarker(pos=[60, 100],marker=2)
+    mesh_world = mt.createMesh(world, area=1)
+    appended_world = mt.appendTriangleBoundary(mesh_world,xbound=100,ybound=100,marker=1)
+    # Creat the ERT Manager
+    mgr3 = ert.ERTManager(data)
+    # Run the inversion with the preset data. The Inversion mesh will be created
+    # with default settings.
+    inv3 = mgr3.invert(mesh=appended_world, lam=100, verbose=True)
+    mgrs.append(mgr3)
 # %% Plot the results by resistivity and the residual_struc profile  
 white_polygon = np.array([[0, 80], [0.0, 110], [30, 80], [100, 100], 
                         [c1.node(12).pos()[0], c1.node(12).pos()[1]], 
@@ -201,32 +189,34 @@ grid = pg.createGrid(x=mesh_x,y=mesh_y )
 rho = pg.Vector(np.array([row[1] for row in rhomap[1:3]])[mesh.cellMarkers() - 2] )
 # Distinguish the region of the mesh and insert the value of rhomap
 rho_grid = pg.interpolate(mesh, rho, grid.cellCenters())
-# %%
-fig = plt.figure(figsize=(16, 20),constrained_layout=True)
-for i, w_s in enumerate(np.linspace(0,1,5)):
-        ax = plt.subplot(5, 2, 2*i+1)
-        pg.show(invs[i].paraDomain, invs[i].model, ax=ax, **kw)
+
+fig = plt.figure(figsize=(20, 15),constrained_layout=True)
+for i, depth_i in enumerate(layer_depth):
+        c2 = mt.createCircle(pos=(0, depth_i),radius=200, start=1.53*np.pi, end=1.67*np.pi,isClosed=False, 
+                boundaryMarker=2, marker = 2)
+        ax = plt.subplot(3, 2, 2*i+1)
+        pg.show(mgrs[i].paraDomain, mgrs[i].model, ax=ax, **kw)
         ax.set_xlabel(ax.get_xlabel(),fontsize=13)
         ax.set_ylabel(ax.get_ylabel(),fontsize=13)
-        ax.set_title('Inverted resistivity profile $W_s={:.2f}$'.format(w_s),fontweight='bold', size=16)
+        ax.set_title('Inverted resistivity profile depth=ori+({:.2f})m'.format((i-1)*2),fontweight='bold', size=16)
         cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
         ax.add_patch(plt.Polygon(white_polygon,color='white'))
         ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
         ax.plot(pg.x(c2.nodes()),pg.y(c2.nodes()),'-k')
         ax.text(60,85,'RRMS: {:.2f}%, $\chi^2$: {:.2f}'.format(
-                invs[i].inv.relrms(), invs[i].inv.chi2())
+                mgrs[i].inv.relrms(), mgrs[i].inv.chi2())
                 ,fontweight='bold', size=16)
         ax.set_xlim(0,c1.node(12).pos()[0])
         ax.set_ylim(80,c1.node(12).pos()[1])
         
         # Compare profiles
-        rho_constrain = pg.interpolate(invs[i].paraDomain, invs[i].model, grid.cellCenters())
-        ax = plt.subplot(5, 2, 2*i+2)
+        rho_constrain = pg.interpolate(mgrs[i].paraDomain, mgrs[i].model, grid.cellCenters())
+        ax = plt.subplot(3, 2, 2*i+2)
         residual_struc = ((rho_constrain-rho_grid)/rho_grid)*100
         pg.show(grid, residual_struc, ax=ax, **kw_compare)
         ax.set_xlabel(ax.get_xlabel(),fontsize=13)
         ax.set_ylabel(ax.get_ylabel(),fontsize=13)
-        ax.set_title('Resistivity difference profile $W_s={:.2f}$'.format(w_s),fontweight='bold', size=16)
+        ax.set_title('Resistivity difference profile depth=ori+({:.2f})m'.format((i-1)*2),fontweight='bold', size=16)
         cb.ax.set_ylabel(cb.ax.get_ylabel(), fontsize=13)
         ax.add_patch(plt.Polygon(white_polygon,color='white'))
         ax.plot(electrode_x, electrode_y, 'ko', markersize=2)
@@ -236,7 +226,7 @@ for i, w_s in enumerate(np.linspace(0,1,5)):
             ,fontweight="bold", size=16)  
 
 
-fig.savefig(join('results','slope_synthetic_Ws.png'), dpi=300, bbox_inches='tight', transparent=True)
+fig.savefig(join('results','slope_synthetic_depth.png'), dpi=300, bbox_inches='tight', transparent=True)
 
 # %%
 # Plot the results of normal mesh
@@ -285,9 +275,9 @@ resSmooth = fopDP(mgr2.model)
 
 fig, ax = plt.subplots()
 # Find the index of mesh_x that is closest to specific_x_value
-index = np.abs(pg.x(c2.nodes()) - 60).argmin()
+index = np.abs(pg.x(c1.nodes()) - 60).argmin()
 # Extract the corresponding values of the entire y column
-y_interface = pg.y(c2.nodes())[index]
+y_interface = pg.y(c1.nodes())[index]
 index2 = np.abs(y - y_interface).argmin()
 true_rho = np.ones(len(y))
 for i in range(len(true_rho)):
@@ -297,14 +287,14 @@ for i in range(len(true_rho)):
                 true_rho[i] = 50
 # ax.semilogx(list(resSmooth), y,'--k', label="Normal mesh")
 ax.semilogx(list(true_rho), y,'-k', label="True value")
-for i, w_s in enumerate(np.linspace(0,1,5)):
+for i, depth_i in enumerate(layer_depth):
         posVec = [pg.Pos(pos) for pos in zip(x, y)]
-        para = pg.Mesh(invs[i].paraDomain)  # make a copy
+        para = pg.Mesh(mgrs[i].paraDomain)  # make a copy
         para.setCellMarkers(pg.IVector(para.cellCount()))
         fopDP = PriorModelling(para, posVec)
-        ax.semilogx(fopDP(invs[i].model),y,label='$W_s = {:.2f}$'.format(w_s))
+        ax.semilogx(fopDP(mgrs[i].model),y,label='depth = ori+{:.0f}m'.format((i-1)*2))
 ax.set_xlabel(r"$\rho$ ($\Omega$m)")
 ax.set_ylabel("depth (m)")
 ax.grid(which='both',linestyle='--',linewidth=0.5)
 ax.legend()
-fig.savefig(join('results','slope_synthetic_Ws_1D.png'), dpi=300, bbox_inches='tight', transparent=True)
+fig.savefig(join('results','slope_synthetic_depth_1D.png'), dpi=300, bbox_inches='tight', transparent=True)
