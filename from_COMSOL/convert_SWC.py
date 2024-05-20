@@ -6,6 +6,7 @@ import pygimli as pg
 import pygimli.meshtools as mt
 from pygimli.physics import ert
 from scipy.interpolate import griddata, NearestNDInterpolator
+from matplotlib.gridspec import GridSpec
 
 csv_name = 'water content.csv'
 df = pd.read_csv(csv_name, comment='%', header=None)
@@ -108,7 +109,7 @@ def combine_array(schemeName='dd'):
     show_simulation(data)
     return data
     
-data = combine_array(schemeName=['dd','wa','wb'])
+data = combine_array(schemeName=['dd','wa','wb','slm'])
 
 ert.showData(data)
 # %%
@@ -117,7 +118,7 @@ mgr.invert(data=data, mesh=mesh, lam=100,verbose=True)
 mgr.showResultAndFit()
 
 # %%
-from matplotlib.gridspec import GridSpec
+# Plot resistivity model results
 kw = dict(cMin=272, cMax=1350, logScale=True, cMap='jet',
           xlabel='Distance (m)', ylabel='Depth (m)', 
           label=pg.unit('res'), orientation='vertical')
@@ -140,8 +141,24 @@ ax2.set_xlim(ax1.get_xlim())
 ax2.set_ylim(ax1.get_ylim())
 
 # %%
+# Plot resistivity model difference results
+kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
+                  label='Relative resistivity difference (%)',
+                  xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
 inverison_mesh = mgr.paraDomain
-inverison_values = mgr.model
+inverison_values = np.array(mgr.model)
+selected_res = []
+for i in range(mesh.cellCount()):
+    if mesh.cellMarkers()[i] == 2:
+        selected_res.append(grid_resistivity[i])
+
+diff = ((inverison_values-selected_res)/selected_res)*100
+fig = plt.figure(figsize=(10, 5), constrained_layout=True)
+ax,_ = pg.show(inverison_mesh, data=diff, **kw_compare)
+ax.set_xlim([0, 30])
+# %%
+
+
 water_content = (1/(inverison_values*cFluid))**(1/n)
 # %%
 comsol_water_content = griddata((np.array(inverison_mesh.cellCenters())[:, :2]), water_content, 
