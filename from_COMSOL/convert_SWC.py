@@ -16,7 +16,8 @@ df = pd.read_csv(csv_name, comment='%', header=None)
 df.columns = ['X', 'Y', 'theta']
 
 fig,ax = plt.subplots(figsize=(6.4, 4.8))
-scatter = ax.scatter(df['X'], df['Y'], c=df['theta'], marker='o',s=1,cmap='Blues')
+scatter = ax.scatter(df['X'], df['Y'], c=df['theta'], marker='o',s=1,cmap='Blues',
+                     vmin=min(df['theta']),vmax=max(df['theta']))
 ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
 ax.set_title(r'$\theta$ Scatter Plot from COMSOL')
@@ -26,6 +27,7 @@ ax.set_ylim([5,20])
 divider = make_axes_locatable(ax)
 cax = divider.append_axes('right', size='2.5%', pad=0.05)
 cbar = fig.colorbar(scatter, cax=cax)
+
 cbar.set_label(r'$\theta$')
 fig.savefig(join('results','SWC Scatter Plot from COMSOL.png'),dpi=300,bbox_inches='tight')
 
@@ -99,37 +101,42 @@ ax.set_xlim([-10, 40])
 ax.set_ylim([5,20])
 
 # %%
-grid_SWC = griddata((df[['X', 'Y']].to_numpy()), df['theta'].to_numpy(), 
-                  (np.array(mesh.cellCenters())[:, :2]), method='linear', fill_value=np.nan)
 
-fill_value = np.nanmedian(grid_SWC)
-grid_SWC = np.nan_to_num(grid_SWC, nan=fill_value)
 
 # %%
 # Tow layers
 from shapely.geometry import LineString, Point
+def convert_SWC_to_resistivity(df, mesh, interface_coords):
+    grid_SWC = griddata((df[['X', 'Y']].to_numpy()), df['theta'].to_numpy(), 
+                  (np.array(mesh.cellCenters())[:, :2]), method='linear', fill_value=np.nan)
 
-line = LineString(interface_coords)
-resistivity = np.zeros(mesh.cellCount())
-# 檢查每個點
-for i, point in enumerate(np.array(mesh.cellCenters())[:,:-1]):
-    point = Point(point)
-    distance = line.distance(point)
-    # 判斷點相對於折線的位置
-    if point.y > line.interpolate(line.project(point)).y:
-        n = 2
-        cFluid = 0.036
-        resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
-    else:
-        n = 1.8
-        cFluid = 0.026
-        resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
+    fill_value = np.nanmedian(grid_SWC)
+    grid_SWC = np.nan_to_num(grid_SWC, nan=fill_value)
+    line = LineString(interface_coords)
+    resistivity = np.zeros(mesh.cellCount())
+    # 檢查每個點
+    for i, point in enumerate(np.array(mesh.cellCenters())[:,:-1]):
+        point = Point(point)
+        distance = line.distance(point)
+        # 判斷點相對於折線的位置
+        if point.y > line.interpolate(line.project(point)).y:
+            n = 2
+            cFluid = 0.036
+            resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
+        else:
+            n = 1.8
+            cFluid = 0.026
+            resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
 
+    return resistivity
+
+resistivity = convert_SWC_to_resistivity(df, mesh, interface_coords)
+resistivity_constrain = convert_SWC_to_resistivity(df, mesh_inverse_constrain, interface_coords)
 # %%
 kw = dict(cMin=272, cMax=1350, logScale=True, cMap='jet',
           xlabel='X (m)', ylabel='Y (m)', 
           label=pg.unit('res'), orientation='vertical')
-ax,_ = pg.show(mesh, data=resistivity, **kw)
+ax,_ = pg.show(mesh_inverse_constrain,resistivity_constrain, **kw)
 ax.set_xlim([0, 30])
 ax.set_ylim([5,20])
 ax.set_title('Resistivity Model from SWC')
@@ -143,22 +150,24 @@ def show_simulation(data):
     pg.info('Simulated rhoa (min/max)', min(data['rhoa']), max(data['rhoa']))
     pg.info('Selected data noise %(min/max)', min(data['err'])*100, max(data['err'])*100)
 
-def combine_array(schemeName='dd',mesh = mesh, res=resistivity):
+def combine_array(schemeName,mesh, res):
     kw_noise = dict(noiseLevel=0.01, noiseAbs=0.001, seed=1337)
     if (len(schemeName) == 1):
-        data = ert.simulate(mesh = mesh, res=resistivity,
+        data = ert.simulate(mesh = mesh, res=res,
                     scheme=ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
                            schemeName=schemeName),
                     **kw_noise)
         
     elif(len(schemeName) > 1):
-        data = data = ert.simulate(mesh = mesh, res=resistivity,
+        print(mesh.cellCount())
+        print(len(res))
+        data = ert.simulate(mesh = mesh, res=res,
                     scheme=ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
                            schemeName=schemeName[0]),
                     **kw_noise)
         for i in range(1,len(schemeName)):
             print('Simulating', schemeName[i])
-            data.add(ert.simulate(mesh = mesh, res=resistivity,
+            data.add(ert.simulate(mesh = mesh, res=res,
                     scheme=ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
                            schemeName=schemeName[i]),
                     **kw_noise))
@@ -169,6 +178,20 @@ def combine_array(schemeName='dd',mesh = mesh, res=resistivity):
 data = combine_array(schemeName=['dd','wa','wb','slm'],mesh = mesh, res=resistivity)
 
 ert.showData(data)
+
+data_constrain = combine_array(schemeName=['dd','wa','wb','slm'], mesh = mesh_inverse_constrain, res=resistivity_constrain)
+
+ert.showData(data_constrain)
+# %%
+# # Plot resistivity model results
+fig, ax = plt.subplots(figsize=(5,5))
+ax.scatter(np.log10(data('rhoa')), np.log10(data_constrain('rhoa')), s=1)
+xticks = ax.get_xlim()
+yticks = ax.get_ylim()
+lim = max(max(yticks,xticks)) + 0.5
+ax.plot([0,lim],[0,lim],'k-',linewidth=1, alpha=0.2)
+ax.set_xlim([2,lim])
+ax.set_ylim([2,lim])
 # %%
 mgr = ert.ERTManager()
 mgr.invert(data=data, mesh=mesh_inverse_constrain, lam=100,verbose=True)
@@ -313,13 +336,46 @@ fig.savefig(join('results','Compare.png'), dpi=300, bbox_inches='tight', transpa
 # comsol_water_content = griddata((np.array(inverison_mesh.cellCenters())[:, :2]), water_content, 
 #                             (df[['X', 'Y']].to_numpy()), method='linear')
 
-# # 處理插值範圍外的值：使用 NearestNDInterpolator
-# nan_indices = np.isnan(comsol_water_content)
-# if nan_indices.any():
-#     nearest_interp = NearestNDInterpolator((np.array(inverison_mesh.cellCenters())[:, :2]), water_content)
-#     comsol_water_content[nan_indices] = nearest_interp(df['X'].to_numpy()[nan_indices], df['Y'].to_numpy()[nan_indices])
+def convert_resistivity_to_SWC(df, resistivity, mesh, interface_coords):
+    grid_resistivity = griddata((np.array(mesh.cellCenters())[:, :2]), resistivity, 
+                                (df[['X', 'Y']].to_numpy()), method='linear', fill_value=np.nan)
+    fill_value = np.nanmedian(grid_resistivity)
+    grid_resistivity = np.nan_to_num(grid_resistivity, nan=fill_value)
+    line = LineString(interface_coords)
+    SWC = np.zeros(len(df))
+    # 檢查每個點
+    for i, point in enumerate(df[['X', 'Y']].to_numpy()):
+        point = Point(point)
+        distance = line.distance(point)
+        # 判斷點相對於折線的位置
+        if point.y > line.interpolate(line.project(point)).y:
+            n = 2
+            cFluid = 0.036
+            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
+        else:
+            n = 1.8
+            cFluid = 0.026
+            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
 
+    return SWC
+
+SWC = convert_resistivity_to_SWC(df, mgr.model, mgr.paraDomain, interface_coords)
+SWC_normal = convert_resistivity_to_SWC(df, mgr_normal.model, mgr_normal.paraDomain, interface_coords)
+fig,ax = plt.subplots(figsize=(6.4, 4.8))
+scatter = ax.scatter(df['X'], df['Y'], c=SWC_normal, marker='o',s=1,cmap='Blues',
+                     vmin=min(df['theta']),vmax=max(df['theta']))
+ax.set_xlabel('X (m)')
+ax.set_ylabel('Y (m)')
+ax.set_title(r'$\theta$ Scatter Plot To COMSOL')
+ax.set_aspect('equal')
+ax.set_xlim([0, 30])
+ax.set_ylim([5,20])
+divider = make_axes_locatable(ax)
+cax = divider.append_axes('right', size='2.5%', pad=0.05)
+cbar = fig.colorbar(scatter, cax=cax)
+cbar.set_label(r'$\theta$')
 # plt.scatter(df['X'], df['Y'], c=comsol_water_content,s=1, cmap='jet_r')
 # plt.colorbar()
 # df['water_content'] = comsol_water_content
 # df.to_csv('water_content_TO_comsol.csv', index=False,columns=['X', 'Y', 'water_content'])
+# %%
