@@ -120,12 +120,12 @@ def convert_SWC_to_resistivity(df, mesh, interface_coords):
         distance = line.distance(point)
         # 判斷點相對於折線的位置
         if point.y > line.interpolate(line.project(point)).y:
-            n = 2
-            cFluid = 0.036
+            n = 1.83
+            cFluid = 1/(0.57*106)
             resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
         else:
-            n = 1.8
-            cFluid = 0.026
+            n = 1.34
+            cFluid = 1/(0.58*75)
             resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
 
     return resistivity
@@ -133,10 +133,10 @@ def convert_SWC_to_resistivity(df, mesh, interface_coords):
 resistivity = convert_SWC_to_resistivity(df, mesh, interface_coords)
 resistivity_constrain = convert_SWC_to_resistivity(df, mesh_inverse_constrain, interface_coords)
 # %%
-kw = dict(cMin=272, cMax=1350, logScale=True, cMap='jet',
+kw = dict(cMin=min(resistivity), cMax=max(resistivity), logScale=True, cMap='jet',
           xlabel='X (m)', ylabel='Y (m)', 
           label=pg.unit('res'), orientation='vertical')
-ax,_ = pg.show(mesh_inverse_constrain,resistivity_constrain, **kw)
+ax,_ = pg.show(mesh,resistivity, **kw)
 ax.set_xlim([0, 30])
 ax.set_ylim([5,20])
 ax.set_title('Resistivity Model from SWC')
@@ -349,12 +349,12 @@ def convert_resistivity_to_SWC(df, resistivity, mesh, interface_coords):
         distance = line.distance(point)
         # 判斷點相對於折線的位置
         if point.y > line.interpolate(line.project(point)).y:
-            n = 2
-            cFluid = 0.036
+            n = 1.83
+            cFluid = 1/(0.57*106)
             SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
         else:
-            n = 1.8
-            cFluid = 0.026
+            n = 1.34
+            cFluid = 1/(0.58*75)
             SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
 
     return SWC
@@ -362,7 +362,7 @@ def convert_resistivity_to_SWC(df, resistivity, mesh, interface_coords):
 SWC = convert_resistivity_to_SWC(df, mgr.model, mgr.paraDomain, interface_coords)
 SWC_normal = convert_resistivity_to_SWC(df, mgr_normal.model, mgr_normal.paraDomain, interface_coords)
 fig,ax = plt.subplots(figsize=(6.4, 4.8))
-scatter = ax.scatter(df['X'], df['Y'], c=SWC_normal, marker='o',s=1,cmap='Blues',
+scatter = ax.scatter(df['X'], df['Y'], c=SWC, marker='o',s=1,cmap='Blues',
                      vmin=min(df['theta']),vmax=max(df['theta']))
 ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
@@ -374,6 +374,7 @@ divider = make_axes_locatable(ax)
 cax = divider.append_axes('right', size='2.5%', pad=0.05)
 cbar = fig.colorbar(scatter, cax=cax)
 cbar.set_label(r'$\theta$')
+fig.savefig(join('results','SWC Scatter Plot To COMSOL.png'),dpi=300,bbox_inches='tight')
 # plt.scatter(df['X'], df['Y'], c=comsol_water_content,s=1, cmap='jet_r')
 # plt.colorbar()
 # df['water_content'] = comsol_water_content
