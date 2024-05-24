@@ -329,41 +329,110 @@ residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
 plot_residual_contour(ax=ax6, grid=grid, data=residual_layer_grid, title='Structured constrained resistivity difference profile',mesh_x=mesh_x,mesh_y=mesh_y, **kw_compare)
 ax6.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'-k')
 
-fig.savefig(join('results','Compare.png'), dpi=300, bbox_inches='tight', transparent=True)
+fig.savefig(join('results','Compare.png'), dpi=300, bbox_inches='tight', transparent=False)
 
 # %%
-# water_content = (1/(inverison_values*cFluid))**(1/n)
-# comsol_water_content = griddata((np.array(inverison_mesh.cellCenters())[:, :2]), water_content, 
-#                             (df[['X', 'Y']].to_numpy()), method='linear')
 
-def convert_resistivity_to_SWC(df, resistivity, mesh, interface_coords):
+from scipy.optimize import root
+# ﹚竡 Van Genuchten 家はㄧ计
+def van_genuchten_inv(theta, theta_r, theta_s, alpha, n):
+    if theta == theta_s:
+        return 0  # 埂㎝篈溃繷砞竚箂
+    m = 1 - 1/n
+    func = lambda h: theta_r + (theta_s - theta_r) / (1 + (alpha * np.abs(h))**n)**m - theta
+    
+    # ㄏノ﹍瞦代ㄓ矗蔼铆胺┦
+    initial_guesses = [-1, -10, -100, -1000]
+    for h_guess in initial_guesses:
+        sol = root(func, h_guess)
+        if sol.success:
+            return sol.x[0]
+    
+    raise ValueError(f"Solution not found for theta = {theta}")
+
+def convert_resistivity_to_Hp(df, resistivity, mesh, interface_coords):
     grid_resistivity = griddata((np.array(mesh.cellCenters())[:, :2]), resistivity, 
                                 (df[['X', 'Y']].to_numpy()), method='linear', fill_value=np.nan)
     fill_value = np.nanmedian(grid_resistivity)
     grid_resistivity = np.nan_to_num(grid_resistivity, nan=fill_value)
     line = LineString(interface_coords)
     SWC = np.zeros(len(df))
+    Hp = np.zeros(len(df))
+    mark = np.zeros(len(df))
     # 浪琩–翴
     for i, point in enumerate(df[['X', 'Y']].to_numpy()):
         point = Point(point)
         distance = line.distance(point)
         # 耞翴癸ч絬竚
         if point.y > line.interpolate(line.project(point)).y:
+            mark[i] = 1
             n = 1.83
             cFluid = 1/(0.57*106)
             SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
+
+            # [Soil] Van Genuchten 家把计
+            theta_r = 0.034  # 摧緇秖
+            theta_s = 0.46  # 埂㎝秖
+            alpha = 1.6     # 竒喷把计
+            n = 1.37       # 竒喷把计
+
+            Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
+
         else:
+            mark[i] = -1
             n = 1.34
             cFluid = 1/(0.58*75)
             SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
 
-    return SWC
+            # [Rock] Van Genuchten 家把计
+            theta_r = 0.031  # 摧緇秖
+            theta_s = 0.467  # 埂㎝秖
+            alpha = 3.64     # 竒喷把计
+            n = 1.121       # 竒喷把计
 
-SWC = convert_resistivity_to_SWC(df, mgr.model, mgr.paraDomain, interface_coords)
-SWC_normal = convert_resistivity_to_SWC(df, mgr_normal.model, mgr_normal.paraDomain, interface_coords)
+            Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
+
+
+    return Hp, SWC,mark
+
+Hp, SWC ,mark= convert_resistivity_to_Hp(df, mgr.model, mgr.paraDomain, interface_coords)
+
+fig,ax = plt.subplots(figsize=(6.4, 4.8))
+scatter = ax.scatter(df['X'], df['Y'], c=mark, marker='o',s=1,cmap='Blues',
+                     vmin=-1,vmax=1
+                     )
+ax.set_xlabel('X (m)')
+ax.set_ylabel('Y (m)')
+ax.set_title(r'$H_p$ Scatter Plot To COMSOL')
+ax.set_aspect('equal')
+ax.set_xlim([0, 30])
+ax.set_ylim([5,20])
+divider = make_axes_locatable(ax)
+cax = divider.append_axes('right', size='2.5%', pad=0.05)
+cbar = fig.colorbar(scatter, cax=cax)
+cbar.set_label(r'$mark$')
+# %%
+# Hp_normal = convert_resistivity_to_Hp(df, mgr_normal.model, mgr_normal.paraDomain, interface_coords)
+fig,ax = plt.subplots(figsize=(6.4, 4.8))
+scatter = ax.scatter(df['X'], df['Y'], c=Hp, marker='o',s=1,cmap='Blues',
+                     vmin=-18,vmax=0
+                     )
+ax.set_xlabel('X (m)')
+ax.set_ylabel('Y (m)')
+ax.set_title(r'$H_p$ Scatter Plot To COMSOL')
+ax.set_aspect('equal')
+ax.set_xlim([0, 30])
+ax.set_ylim([5,20])
+divider = make_axes_locatable(ax)
+cax = divider.append_axes('right', size='2.5%', pad=0.05)
+cbar = fig.colorbar(scatter, cax=cax)
+cbar.set_label(r'$m$')
+fig.savefig(join('results','Head Scatter Plot To COMSOL.png'),dpi=300,bbox_inches='tight')
+
 fig,ax = plt.subplots(figsize=(6.4, 4.8))
 scatter = ax.scatter(df['X'], df['Y'], c=SWC, marker='o',s=1,cmap='Blues',
-                     vmin=min(df['theta']),vmax=max(df['theta']))
+                     vmin=min(df['theta']),vmax=max(df['theta'])
+                     )
 ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
 ax.set_title(r'$\theta$ Scatter Plot To COMSOL')
@@ -375,8 +444,11 @@ cax = divider.append_axes('right', size='2.5%', pad=0.05)
 cbar = fig.colorbar(scatter, cax=cax)
 cbar.set_label(r'$\theta$')
 fig.savefig(join('results','SWC Scatter Plot To COMSOL.png'),dpi=300,bbox_inches='tight')
+# %%
+
 # plt.scatter(df['X'], df['Y'], c=comsol_water_content,s=1, cmap='jet_r')
 # plt.colorbar()
-# df['water_content'] = comsol_water_content
-# df.to_csv('water_content_TO_comsol.csv', index=False,columns=['X', 'Y', 'water_content'])
+df['water_content'] = SWC
+df['pressure_head'] = Hp
+df.to_csv('TO_comsol.csv', index=False,columns=['X', 'Y', 'water_content', 'pressure_head'])
 # %%
