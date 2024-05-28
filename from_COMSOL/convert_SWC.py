@@ -10,232 +10,303 @@ from scipy.interpolate import griddata, NearestNDInterpolator
 from matplotlib.gridspec import GridSpec
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from os.path import join
-
-csv_name = '2Layers_water content (1a).csv'
-df = pd.read_csv(csv_name, comment='%', header=None)
-df.columns = ['X', 'Y', 'theta']
-
-fig,ax = plt.subplots(figsize=(6.4, 4.8))
-scatter = ax.scatter(df['X'], df['Y'], c=df['theta'], marker='o',s=1,cmap='Blues',
-                     vmin=min(df['theta']),vmax=max(df['theta']))
-ax.set_xlabel('X (m)')
-ax.set_ylabel('Y (m)')
-ax.set_title(r'$\theta$ Scatter Plot from COMSOL')
-ax.set_aspect('equal')
-ax.set_xlim([0, 30])
-ax.set_ylim([5,20])
-divider = make_axes_locatable(ax)
-cax = divider.append_axes('right', size='2.5%', pad=0.05)
-cbar = fig.colorbar(scatter, cax=cax)
-
-cbar.set_label(r'$\theta$')
-fig.savefig(join('results','SWC Scatter Plot from COMSOL.png'),dpi=300,bbox_inches='tight')
-
-geo = pd.read_csv('geometry.csv', header=None)
-geo.columns = ['x', 'y']
-# %%
-# electrode_x = np.linspace(start=geo['x'].loc[2], stop=geo['x'].loc[3], num=25)
-# electrode_y = np.linspace(start=geo['y'].loc[2], stop=geo['y'].loc[3], num=25)
-# 定義折線座標
-line_coords = np.array(geo[1:-1])
-def create_electrode_coords(line_coords):
-    # 計算每段的距離和總距離
-    distances = np.sqrt(np.sum(np.diff(line_coords, axis=0)**2, axis=1))
-    total_distance = np.sum(distances)
-
-    # 生成等距點
-    num_points = int(total_distance) + 1
-    electrode_distances = np.linspace(0, total_distance, num=num_points)
-
-    # 計算等距點的座標
-    electrode_coords = []
-    current_distance = 0
-    for i in range(len(line_coords) - 1):
-        segment_length = distances[i]
-        while current_distance <= segment_length:
-            t = current_distance / segment_length
-            point = (1 - t) * line_coords[i] + t * line_coords[i + 1]
-            electrode_coords.append(point)
-            current_distance += 1
-        current_distance -= segment_length
-
-    electrode_coords = np.array(electrode_coords)
-
-    # 繪製折線和電極座標
-    plt.plot(line_coords[:, 0], line_coords[:, 1], 'k-', label='Terrain Line')
-    plt.plot(electrode_coords[:, 0], electrode_coords[:, 1], 'ro', label='electrode')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.legend()
-    plt.show()
-
-    # 輸出電極座標
-    electrode_x, electrode_y = electrode_coords[:, 0], electrode_coords[:, 1]
-    print(f"Electrode X coordinates: {electrode_x}")
-    print(f"Electrode Y coordinates: {electrode_y}")
-    return electrode_x, electrode_y
-
-electrode_x, electrode_y = create_electrode_coords(line_coords)
-scheme = ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
-                           schemeName=None)
-
-# %%
-interface_coords = np.array(geo[1:-1])
-interface_coords[:,1]= interface_coords[:,1]-2
-print(  interface_coords)
-slope = mt.createPolygon(interface_coords,
-                          isClosed=False, marker = 2,boundaryMarker=2)
-pg.show(slope, markers=True, showMesh=True)
-# %%
-plc_forward = mt.createParaMeshPLC(scheme,paraDepth=5,paraDX=1/10,paraMaxCellSize=0.01,
-                                    balanceDepth=True)
-plc_forward = plc_forward + slope
-plc_inverse = mt.createParaMeshPLC(scheme,paraDepth=5,paraDX=1/10,paraMaxCellSize=0.1,
-                                    balanceDepth=True)
-plc_inverse_constrain = plc_inverse + slope
-mesh_inverse = mt.createMesh(plc_inverse)
-mesh_inverse_constrain = mt.createMesh(plc_inverse_constrain)
-mesh = mt.createMesh(plc_forward)
-ax,_ = pg.show(mesh_inverse,markers=False,showMesh=True)
-ax.set_xlim([-10, 40])
-ax.set_ylim([5,20])
-
-# %%
-
-
-# %%
-# Tow layers
+from os import listdir
+from matplotlib.patches import Polygon
 from shapely.geometry import LineString, Point
-def convert_SWC_to_resistivity(df, mesh, interface_coords):
-    grid_SWC = griddata((df[['X', 'Y']].to_numpy()), df['theta'].to_numpy(), 
-                  (np.array(mesh.cellCenters())[:, :2]), method='linear', fill_value=np.nan)
+from scipy.optimize import root
 
-    fill_value = np.nanmedian(grid_SWC)
-    grid_SWC = np.nan_to_num(grid_SWC, nan=fill_value)
+def import_geometry_csv():
+    geo = pd.read_csv('geometry.csv', header=None)
+    geo.columns = ['x', 'y']
+
+    return geo
+geo = import_geometry_csv()
+
+# Define the function to create the electrode coordinates
+def create_electrode_and_mesh(geo):
+    line_coords = np.array(geo[1:-1])
+    def create_electrode_coords(line_coords):
+        # calculate the total distance of the line
+        distances = np.sqrt(np.sum(np.diff(line_coords, axis=0)**2, axis=1))
+        total_distance = np.sum(distances)
+
+        # generate equidistant points
+        num_points = int(total_distance) + 1
+        electrode_distances = np.linspace(0, total_distance, num=num_points)
+
+        # calculate the coordinates of the electrodes
+        electrode_coords = []
+        current_distance = 0
+        for i in range(len(line_coords) - 1):
+            segment_length = distances[i]
+            while current_distance <= segment_length:
+                t = current_distance / segment_length
+                point = (1 - t) * line_coords[i] + t * line_coords[i + 1]
+                electrode_coords.append(point)
+                current_distance += 1
+            current_distance -= segment_length
+
+        electrode_coords = np.array(electrode_coords)
+
+        # # plot the line and the electrodes
+        # plt.plot(line_coords[:, 0], line_coords[:, 1], 'k-', label='Terrain Line')
+        # plt.plot(electrode_coords[:, 0], electrode_coords[:, 1], 'ro', label='electrode')
+        # plt.xlabel('X')
+        # plt.ylabel('Y')
+        # plt.legend()
+        # plt.show()
+
+        # extract the x and y coordinates of the electrodes
+        electrode_x, electrode_y = electrode_coords[:, 0], electrode_coords[:, 1]
+        print(f"Electrode X coordinates: {electrode_x}")
+        print(f"Electrode Y coordinates: {electrode_y}")
+        return electrode_x, electrode_y
+
+    electrode_x, electrode_y = create_electrode_coords(line_coords)
+    scheme = ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
+                            schemeName=None)
+
+    interface_coords = np.array(geo[1:-1])
+    interface_coords[:,1]= interface_coords[:,1]-2
+    print(  interface_coords)
+    slope = mt.createPolygon(interface_coords,
+                            isClosed=False, marker = 2,boundaryMarker=2)
+    # pg.show(slope, markers=True, showMesh=True)
+
+    plc_forward = mt.createParaMeshPLC(scheme,paraDepth=5,paraDX=1/10,paraMaxCellSize=0.05,
+                                        balanceDepth=True)
+    plc_forward = plc_forward + slope
+    plc_inverse = mt.createParaMeshPLC(scheme,paraDepth=5,paraDX=1/10,paraMaxCellSize=0.1,
+                                        balanceDepth=True)
+    plc_inverse_constrain = plc_inverse + slope
+    mesh_inverse = mt.createMesh(plc_inverse)
+    mesh_inverse_constrain = mt.createMesh(plc_inverse_constrain)
+    mesh = mt.createMesh(plc_forward)
+    # ax,_ = pg.show(mesh_inverse,markers=False,showMesh=True)
+    # ax.set_xlim([-10, 40])
+    # ax.set_ylim([5,20])
+
+    return electrode_x, electrode_y, mesh, mesh_inverse, mesh_inverse_constrain, interface_coords, slope
+electrode_x, electrode_y, mesh, mesh_inverse, mesh_inverse_constrain, interface_coords, slope = create_electrode_and_mesh(geo)
+
+def import_COMSOL_csv(csv_name = '2Layers_water content (1a).csv',plot=True,geo=geo,style='scatter'):
+    
+    df = pd.read_csv(csv_name, comment='%', header=None)
+    df.columns = ['X', 'Y', 'theta']
+    if plot:
+        fig,ax = plt.subplots(figsize=(6.4, 4.8))
+        if style == 'scatter':
+            plot = ax.scatter(df['X'], df['Y'], c=df['theta'], marker='o',s=1,cmap='Blues',
+                                        vmin=min(df['theta']),vmax=max(df['theta']))
+        else:
+            x_min, x_max = df['X'].min(), df['X'].max()
+            y_min, y_max = df['Y'].min(), df['Y'].max()
+
+            grid_x, grid_y = np.meshgrid(np.linspace(x_min, x_max, 500), np.linspace(y_min, y_max, 500))
+
+            grid_theta = griddata((df['X'], df['Y']), df['theta'], (grid_x, grid_y), method='linear')
+
+            plot = ax.contourf(grid_x, grid_y, grid_theta, levels=32, cmap='Blues'
+                                ,vmin=min(df['theta']),vmax=max(df['theta']))
+
+            terrain_polygon = np.vstack((geo.to_numpy()[2:5], [max(geo['x']), max(geo['y'])], [min(geo['x']), max(geo['y'])]))
+            print(terrain_polygon)
+            mask_polygon = Polygon(terrain_polygon, closed=True, color='white', zorder=10)
+
+            ax.add_patch(mask_polygon)
+
+        ax.set_xlabel('X (m)')
+        ax.set_ylabel('Y (m)')
+        ax.set_title(r'$\theta$ Plot from COMSOL')
+        ax.set_aspect('equal')
+        ax.set_xlim([0, 30])
+        ax.set_ylim([5,20])
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes('right', size='2.5%', pad=0.05)
+        cbar = fig.colorbar(plot, cax=cax)
+        cbar.set_label(r'$\theta$')
+        fig.savefig(join('results','SWC Plot from COMSOL.png'),dpi=300,bbox_inches='tight')
+
+    return df
+
+def Forward_inversion(csv_file_name,geo=geo,plot=True):
+    df = import_COMSOL_csv(csv_name = csv_file_name,plot=True,style='scatter')
+
+    # Tow layers
+    def convert_SWC_to_resistivity(df, mesh, interface_coords,plot=True):
+        grid_SWC = griddata((df[['X', 'Y']].to_numpy()), df['theta'].to_numpy(), 
+                    (np.array(mesh.cellCenters())[:, :2]), method='linear', fill_value=np.nan)
+
+        fill_value = np.nanmedian(grid_SWC)
+        grid_SWC = np.nan_to_num(grid_SWC, nan=fill_value)
+        line = LineString(interface_coords)
+        resistivity = np.zeros(mesh.cellCount())
+        # check each point
+        for i, point in enumerate(np.array(mesh.cellCenters())[:,:-1]):
+            point = Point(point)
+            distance = line.distance(point)
+            # check the position of the point relative to the line
+            if point.y > line.interpolate(line.project(point)).y:
+                n = 1.83
+                cFluid = 1/(0.57*106)
+                resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
+            else:
+                n = 1.34
+                cFluid = 1/(0.58*75)
+                resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
+        if plot==True:
+            kw = dict(cMin=min(resistivity), cMax=max(resistivity), logScale=True, cMap='jet',
+                    xlabel='X (m)', ylabel='Y (m)', 
+                    label=pg.unit('res'), orientation='vertical')
+            ax,_ = pg.show(mesh,resistivity, **kw)
+            ax.set_xlim([0, 30])
+            ax.set_ylim([5,20])
+            ax.set_title('Resistivity Model from SWC')
+            fig = ax.figure
+            fig.savefig(join('results','Resistivity Model from SWC.png'),dpi=300,bbox_inches='tight')
+        return resistivity
+    resistivity = convert_SWC_to_resistivity(df, mesh, interface_coords,plot=True)
+    # resistivity_constrain = convert_SWC_to_resistivity(df, mesh_inverse_constrain, interface_coords)
+
+    def combine_array(schemeName,mesh, res):
+        def show_simulation(data):
+            pg.info(np.linalg.norm(data['err']), np.linalg.norm(data['rhoa']))
+            pg.info('Simulated data', data)
+            pg.info('The data contains:', data.dataMap().keys())
+            pg.info('Simulated rhoa (min/max)', min(data['rhoa']), max(data['rhoa']))
+            pg.info('Selected data noise %(min/max)', min(data['err'])*100, max(data['err'])*100)
+            
+        kw_noise = dict(noiseLevel=0.01, noiseAbs=0.001, seed=1337)
+        if (len(schemeName) == 1):
+            data = ert.simulate(mesh = mesh, res=res,
+                        scheme=ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
+                            schemeName=schemeName),
+                        **kw_noise)
+            
+        elif(len(schemeName) > 1):
+            data = ert.simulate(mesh = mesh, res=res,
+                        scheme=ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
+                            schemeName=schemeName[0]),
+                        **kw_noise)
+            for i in range(1,len(schemeName)):
+                print('Simulating', schemeName[i])
+                data.add(ert.simulate(mesh = mesh, res=res,
+                        scheme=ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
+                            schemeName=schemeName[i]),
+                        **kw_noise))
+
+        show_simulation(data)
+        return data
+        
+    data = combine_array(schemeName=['dd','wa','wb','slm'],mesh = mesh, res=resistivity)
+    if plot==True:
+        ax,_ = ert.showData(data)
+        fig = ax.figure
+        fig.savefig(join('results','Forward_resistivity.png'),dpi=300,bbox_inches='tight')
+
+    mgr = ert.ERTManager()
+    mgr.invert(data=data, mesh=mesh_inverse_constrain, lam=100,verbose=True)
+    mgr.showResultAndFit()
+
+    mgr_normal = ert.ERTManager()
+    mgr_normal.invert(data=data, mesh=mesh_inverse, lam=100,verbose=True)
+    mgr_normal.showResultAndFit()
+
+    return mgr, mgr_normal, data, resistivity,df
+
+    # 定義 Van Genuchten 模型的反函數
+
+def van_genuchten_inv(theta, theta_r, theta_s, alpha, n):
+    if theta == theta_s:
+        return 0  # 飽和狀態下的壓力水頭設置為零
+    m = 1 - 1/n
+    func = lambda h: theta_r + (theta_s - theta_r) / (1 + (alpha * np.abs(h))**n)**m - theta
+    
+    # 使用多個初始猜測值來提高穩健性
+    initial_guesses = [-1, -10, -100, -1000]
+    for h_guess in initial_guesses:
+        sol = root(func, h_guess)
+        if sol.success:
+            return sol.x[0]
+    
+    raise ValueError(f"Solution not found for theta = {theta}")
+
+def convert_resistivity_to_Hp(df, resistivity, mesh, interface_coords):
+    grid_resistivity = griddata((np.array(mesh.cellCenters())[:, :2]), resistivity, 
+                                (df[['X', 'Y']].to_numpy()), method='linear', fill_value=np.nan)
+    fill_value = np.nanmedian(grid_resistivity)
+    grid_resistivity = np.nan_to_num(grid_resistivity, nan=fill_value)
     line = LineString(interface_coords)
-    resistivity = np.zeros(mesh.cellCount())
+    SWC = np.zeros(len(df))
+    Hp = np.zeros(len(df))
     # 檢查每個點
-    for i, point in enumerate(np.array(mesh.cellCenters())[:,:-1]):
+    for i, point in enumerate(df[['X', 'Y']].to_numpy()):
         point = Point(point)
         distance = line.distance(point)
         # 判斷點相對於折線的位置
         if point.y > line.interpolate(line.project(point)).y:
             n = 1.83
             cFluid = 1/(0.57*106)
-            resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
+            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
+
+            # [Soil] Van Genuchten 模型參數
+            theta_r = 0.034  # 殘餘含水量
+            theta_s = 0.46  # 飽和含水量
+            alpha = 1.6     # 經驗參數
+            n = 1.37       # 經驗參數
+
+            Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
+
         else:
             n = 1.34
             cFluid = 1/(0.58*75)
-            resistivity[i] = 1/(cFluid*grid_SWC[i]**n)
+            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
 
-    return resistivity
+            # [Rock] Van Genuchten 模型參數
+            theta_r = 0.031  # 殘餘含水量
+            theta_s = 0.467  # 飽和含水量
+            alpha = 3.64     # 經驗參數
+            n = 1.121       # 經驗參數
 
-resistivity = convert_SWC_to_resistivity(df, mesh, interface_coords)
-resistivity_constrain = convert_SWC_to_resistivity(df, mesh_inverse_constrain, interface_coords)
+            Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
+
+
+    return Hp, SWC
 # %%
-kw = dict(cMin=min(resistivity), cMax=max(resistivity), logScale=True, cMap='jet',
-          xlabel='X (m)', ylabel='Y (m)', 
-          label=pg.unit('res'), orientation='vertical')
-ax,_ = pg.show(mesh,resistivity, **kw)
-ax.set_xlim([0, 30])
-ax.set_ylim([5,20])
-ax.set_title('Resistivity Model from SWC')
-fig = ax.figure
-fig.savefig(join('results','Resistivity Model from SWC.png'),dpi=300,bbox_inches='tight')
+csv_path = 'comsol_swc'
+csvfiles = [_ for _ in listdir(csv_path) if _.endswith('.csv')]
+
+Layers_water_content = {}
+for i,csv_file_name in enumerate(csvfiles):
+    print('Processing', csv_file_name)
+    mgr, mgr_normal, data, resistivity,df = Forward_inversion(join(csv_path,csv_file_name),geo=geo,plot=True)
+    Hp, SWC= convert_resistivity_to_Hp(df, mgr.model, mgr.paraDomain, interface_coords)
+    Hp_normal, SWC_normal = convert_resistivity_to_Hp(df, mgr_normal.model, mgr_normal.paraDomain, interface_coords)
+
+    SWC_real = df['theta'].to_numpy()
+
+    RRMSE = lambda x, y: np.sqrt(np.sum(((x - y)/y)**2) / len(x)) * 100
+    Layers_water_content[i] = {
+        'SWC': SWC,
+        'SWC_normal': SWC_normal,
+        'RRMSE': RRMSE(SWC, SWC_real),
+        'RRMSE_normal': RRMSE(SWC_normal, SWC_real)
+    }
+    print('RRMSE of SWC:', Layers_water_content[i]['RRMSE'])
+    print('RRMSE of SWC normal:', Layers_water_content[i]['RRMSE_normal'])
 # %%
-def show_simulation(data):
-    pg.info(np.linalg.norm(data['err']), np.linalg.norm(data['rhoa']))
-    pg.info('Simulated data', data)
-    pg.info('The data contains:', data.dataMap().keys())
-    pg.info('Simulated rhoa (min/max)', min(data['rhoa']), max(data['rhoa']))
-    pg.info('Selected data noise %(min/max)', min(data['err'])*100, max(data['err'])*100)
+rain_rate = 50 # mm/day
+# rain for 10 days
+cumulative_rain = [rain_rate * i for i in range(1, 3)]
+RRMSE_all = [Layers_water_content[key]['RRMSE'] for key in Layers_water_content]
+RRMSE_normal_all = [Layers_water_content[key]['RRMSE_normal'] for key in Layers_water_content]
 
-def combine_array(schemeName,mesh, res):
-    kw_noise = dict(noiseLevel=0.01, noiseAbs=0.001, seed=1337)
-    if (len(schemeName) == 1):
-        data = ert.simulate(mesh = mesh, res=res,
-                    scheme=ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
-                           schemeName=schemeName),
-                    **kw_noise)
-        
-    elif(len(schemeName) > 1):
-        print(mesh.cellCount())
-        print(len(res))
-        data = ert.simulate(mesh = mesh, res=res,
-                    scheme=ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
-                           schemeName=schemeName[0]),
-                    **kw_noise)
-        for i in range(1,len(schemeName)):
-            print('Simulating', schemeName[i])
-            data.add(ert.simulate(mesh = mesh, res=res,
-                    scheme=ert.createData(elecs=np.column_stack((electrode_x, electrode_y)),
-                           schemeName=schemeName[i]),
-                    **kw_noise))
-
-    show_simulation(data)
-    return data
-    
-data = combine_array(schemeName=['dd','wa','wb','slm'],mesh = mesh, res=resistivity)
-
-ert.showData(data)
-
-data_constrain = combine_array(schemeName=['dd','wa','wb','slm'], mesh = mesh_inverse_constrain, res=resistivity_constrain)
-
-ert.showData(data_constrain)
-# %%
-# # Plot resistivity model results
-fig, ax = plt.subplots(figsize=(5,5))
-ax.scatter(np.log10(data('rhoa')), np.log10(data_constrain('rhoa')), s=1)
-xticks = ax.get_xlim()
-yticks = ax.get_ylim()
-lim = max(max(yticks,xticks)) + 0.5
-ax.plot([0,lim],[0,lim],'k-',linewidth=1, alpha=0.2)
-ax.set_xlim([2,lim])
-ax.set_ylim([2,lim])
-# %%
-mgr = ert.ERTManager()
-mgr.invert(data=data, mesh=mesh_inverse_constrain, lam=100,verbose=True)
-mgr.showResultAndFit()
-# %%
-mgr_normal = ert.ERTManager()
-mgr_normal.invert(data=data, mesh=mesh_inverse, lam=100,verbose=True)
-mgr_normal.showResultAndFit()
-# %%
-# # Plot resistivity model results
-# # 創建圖形和子圖，使用 GridSpec 進行布局管理
-# fig = plt.figure(figsize=(20, 5), constrained_layout=True)
-# gs = GridSpec(1, 2, figure=fig, width_ratios=[1, 1], wspace=0.1)
-
-# # 子圖1：展示 mgr.paraDomain 和 mgr.model
-# ax1 = fig.add_subplot(gs[0, 1])
-# # 替換這行為正確的 mgr.paraDomain 和 mgr.model 數據
-# pg.show(mgr.paraDomain, mgr.model, ax=ax1, **kw)
-# ax1.plot(np.array(pg.x(data)), np.array(pg.y(data)), 'wv', markersize=5)
-# ax1.set_xlim([0, 30])
-
-# # 子圖2：展示 mesh 和 grid_resistivity
-# ax2 = fig.add_subplot(gs[0, 0])
-# # 替換這行為正確的 mesh 和 grid_resistivity 數據
-# pg.show(mesh, data=resistivity, ax=ax2, **kw)
-# ax2.set_xlim(ax1.get_xlim())
-# ax2.set_ylim(ax1.get_ylim())
-
-# # %%
-# # Plot resistivity model difference results
-# kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
-#                   label='Relative resistivity difference (%)',
-#                   xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
-# inverison_mesh = mgr.paraDomain
-# inverison_values = np.array(mgr.model)
-# selected_res = []
-# for i in range(mesh.cellCount()):
-#     if mesh.cellMarkers()[i] == 2:
-#         selected_res.append(grid_resistivity[i])
-
-# diff = ((inverison_values-selected_res)/selected_res)*100
-# fig = plt.figure(figsize=(10, 5), constrained_layout=True)
-# ax,_ = pg.show(inverison_mesh, data=diff, **kw_compare)
-# ax.set_xlim([0, 30])
+fig, ax = plt.subplots(figsize=(6.4, 4.8))
+ax.plot(cumulative_rain,RRMSE_all,'-bo', label='Structured constrained mesh')
+ax.plot(cumulative_rain,RRMSE_normal_all,'-ro', label='Normal mesh')
+ax.set_xlabel('Cumulative infiltration (mm)')
+ax.set_ylabel('RRMSE (%)')
+ax.legend()
 # %%
 # Comparesion of the results by the residual profile
 # Re-interpolate the grid
@@ -332,71 +403,6 @@ ax6.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'-k')
 fig.savefig(join('results','Compare.png'), dpi=300, bbox_inches='tight', transparent=False)
 
 # %%
-
-from scipy.optimize import root
-# 定義 Van Genuchten 模型的反函數
-def van_genuchten_inv(theta, theta_r, theta_s, alpha, n):
-    if theta == theta_s:
-        return 0  # 飽和狀態下的壓力水頭設置為零
-    m = 1 - 1/n
-    func = lambda h: theta_r + (theta_s - theta_r) / (1 + (alpha * np.abs(h))**n)**m - theta
-    
-    # 使用多個初始猜測值來提高穩健性
-    initial_guesses = [-1, -10, -100, -1000]
-    for h_guess in initial_guesses:
-        sol = root(func, h_guess)
-        if sol.success:
-            return sol.x[0]
-    
-    raise ValueError(f"Solution not found for theta = {theta}")
-
-def convert_resistivity_to_Hp(df, resistivity, mesh, interface_coords):
-    grid_resistivity = griddata((np.array(mesh.cellCenters())[:, :2]), resistivity, 
-                                (df[['X', 'Y']].to_numpy()), method='linear', fill_value=np.nan)
-    fill_value = np.nanmedian(grid_resistivity)
-    grid_resistivity = np.nan_to_num(grid_resistivity, nan=fill_value)
-    line = LineString(interface_coords)
-    SWC = np.zeros(len(df))
-    Hp = np.zeros(len(df))
-    mark = np.zeros(len(df))
-    # 檢查每個點
-    for i, point in enumerate(df[['X', 'Y']].to_numpy()):
-        point = Point(point)
-        distance = line.distance(point)
-        # 判斷點相對於折線的位置
-        if point.y > line.interpolate(line.project(point)).y:
-            mark[i] = 1
-            n = 1.83
-            cFluid = 1/(0.57*106)
-            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
-
-            # [Soil] Van Genuchten 模型參數
-            theta_r = 0.034  # 殘餘含水量
-            theta_s = 0.46  # 飽和含水量
-            alpha = 1.6     # 經驗參數
-            n = 1.37       # 經驗參數
-
-            Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
-
-        else:
-            mark[i] = -1
-            n = 1.34
-            cFluid = 1/(0.58*75)
-            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
-
-            # [Rock] Van Genuchten 模型參數
-            theta_r = 0.031  # 殘餘含水量
-            theta_s = 0.467  # 飽和含水量
-            alpha = 3.64     # 經驗參數
-            n = 1.121       # 經驗參數
-
-            Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
-
-
-    return Hp, SWC,mark
-
-Hp, SWC ,mark= convert_resistivity_to_Hp(df, mgr.model, mgr.paraDomain, interface_coords)
-
 fig,ax = plt.subplots(figsize=(6.4, 4.8))
 scatter = ax.scatter(df['X'], df['Y'], c=mark, marker='o',s=1,cmap='Blues',
                      vmin=-1,vmax=1
@@ -445,7 +451,6 @@ cbar = fig.colorbar(scatter, cax=cax)
 cbar.set_label(r'$\theta$')
 fig.savefig(join('results','SWC Scatter Plot To COMSOL.png'),dpi=300,bbox_inches='tight')
 # %%
-
 # plt.scatter(df['X'], df['Y'], c=comsol_water_content,s=1, cmap='jet_r')
 # plt.colorbar()
 df['water_content'] = SWC
