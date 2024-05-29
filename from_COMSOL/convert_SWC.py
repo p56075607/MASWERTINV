@@ -125,7 +125,7 @@ def import_COMSOL_csv(csv_name = '2Layers_water content (1a).csv',plot=True,geo=
         cax = divider.append_axes('right', size='2.5%', pad=0.05)
         cbar = fig.colorbar(plot, cax=cax)
         cbar.set_label(r'$\theta$')
-        fig.savefig(join('results','SWC Plot from COMSOL.png'),dpi=300,bbox_inches='tight')
+        fig.savefig(join('results',csv_name[-7:-4]+'SWC Plot from COMSOL.png'),dpi=300,bbox_inches='tight')
 
     return df
 
@@ -273,7 +273,7 @@ def convert_resistivity_to_Hp(df, resistivity, mesh, interface_coords):
 
     return Hp, SWC
 # %%
-csv_path = 'comsol_swc'
+csv_path = 'SWC0531'
 csvfiles = [_ for _ in listdir(csv_path) if _.endswith('.csv')]
 
 Layers_water_content = {}
@@ -295,18 +295,21 @@ for i,csv_file_name in enumerate(csvfiles):
     print('RRMSE of SWC:', Layers_water_content[i]['RRMSE'])
     print('RRMSE of SWC normal:', Layers_water_content[i]['RRMSE_normal'])
 # %%
-rain_rate = 50 # mm/day
+rain_rate = 365 # mm/day
 # rain for 10 days
-cumulative_rain = [rain_rate * i for i in range(1, 3)]
+cumulative_rain = [rain_rate * i for i in range(1, 12)]
 RRMSE_all = [Layers_water_content[key]['RRMSE'] for key in Layers_water_content]
+RRMSE_all.append(RRMSE_all.pop(1))
 RRMSE_normal_all = [Layers_water_content[key]['RRMSE_normal'] for key in Layers_water_content]
-
+RRMSE_normal_all.append(RRMSE_normal_all.pop(1))
 fig, ax = plt.subplots(figsize=(6.4, 4.8))
 ax.plot(cumulative_rain,RRMSE_all,'-bo', label='Structured constrained mesh')
 ax.plot(cumulative_rain,RRMSE_normal_all,'-ro', label='Normal mesh')
 ax.set_xlabel('Cumulative infiltration (mm)')
-ax.set_ylabel('RRMSE (%)')
+ax.set_ylabel('Soil Water Content RRMSE (%)')
+ax.set_title('RRMSE between True SWC and Inverted SWC')
 ax.legend()
+fig.savefig(join('results', 'RRMSE_SWC.png'), dpi=300, bbox_inches='tight')
 # %%
 # Comparesion of the results by the residual profile
 # Re-interpolate the grid
@@ -322,7 +325,7 @@ grid = pg.createGrid(x=mesh_x,y=mesh_y )
 rho_grid = pg.interpolate(mesh, resistivity, grid.cellCenters())
 fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(10, 10),
                                                          constrained_layout=True,
-                                                         gridspec_kw={'wspace': 0.2})
+                                                         gri dspec_kw={'wspace': 0.2})
 ax2.axis('off')
 # Subplot 1:Original resistivity model
 pg.viewer.showMesh(mesh, resistivity,ax=ax1, **kw)
