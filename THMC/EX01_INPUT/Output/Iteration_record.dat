@@ -1,0 +1,297 @@
+  Print ITER every   10   iterations in Coupled Iterations
+  Print IT   every   10   iterations in Flow Iterations
+  Print IT   every   10   iterations in Chem Iterations
+  Print IT   every  100   iterations in Flow MtrxSv Iterations
+  Print IT   every  100   iterations in Heat MtrxSv Iterations
+  Print IT   every   10   iterations in Chem MtrxSv Iterations
+  Print IT   every   10   iterations in Mech MtrxSv Iterations
+ 
+      FlowIterationCounter=     1, Residual= 7.77398E+01
+      FlowIterationCounter=    10, Residual= 7.05348E-01
+      EndModuleIterCounter=    17, Residual= 1.15773E-02
+      FlowIterationCounter=     1, Residual= 9.18301E+01
+      FlowIterationCounter=    10, Residual= 1.40718E-01
+      EndModuleIterCounter=    13, Residual= 1.87247E-02
+     No Flow-Chem coupling
+ END STEP=       1 , TIME= 5.00000E-02
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 2.06228E+01
+      FlowIterationCounter=    10, Residual= 1.50636E-01
+      EndModuleIterCounter=    14, Residual= 1.83036E-02
+     No Flow-Chem coupling
+ END STEP=       2 , TIME= 1.10000E-01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 1.41675E+01
+      FlowIterationCounter=    10, Residual= 9.28629E-02
+      EndModuleIterCounter=    13, Residual= 1.69445E-02
+     No Flow-Chem coupling
+ END STEP=       3 , TIME= 1.82000E-01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 1.08926E+01
+      FlowIterationCounter=    10, Residual= 6.46912E-02
+      EndModuleIterCounter=    13, Residual= 1.10611E-02
+     No Flow-Chem coupling
+ END STEP=       4 , TIME= 2.68400E-01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 9.04528E+00
+      FlowIterationCounter=    10, Residual= 4.93350E-02
+      EndModuleIterCounter=    12, Residual= 1.50328E-02
+     No Flow-Chem coupling
+ END STEP=       5 , TIME= 3.72080E-01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 7.79900E+00
+      FlowIterationCounter=    10, Residual= 3.98020E-02
+      EndModuleIterCounter=    12, Residual= 1.20160E-02
+     No Flow-Chem coupling
+ END STEP=       6 , TIME= 4.96496E-01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 6.83569E+00
+      FlowIterationCounter=    10, Residual= 3.30380E-02
+      EndModuleIterCounter=    11, Residual= 1.81483E-02
+     No Flow-Chem coupling
+ END STEP=       7 , TIME= 6.45795E-01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 6.05021E+00
+      FlowIterationCounter=    10, Residual= 2.78450E-02
+      EndModuleIterCounter=    11, Residual= 1.53131E-02
+     No Flow-Chem coupling
+ END STEP=       8 , TIME= 8.24954E-01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 5.37778E+00
+      FlowIterationCounter=    10, Residual= 2.64819E-02
+      EndModuleIterCounter=    11, Residual= 1.53702E-02
+     No Flow-Chem coupling
+ END STEP=       9 , TIME= 1.03995E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 5.13285E+00
+      FlowIterationCounter=    10, Residual= 4.37033E-02
+      EndModuleIterCounter=    12, Residual= 1.65372E-02
+     No Flow-Chem coupling
+ END STEP=      10 , TIME= 1.29793E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 5.32008E+00
+      FlowIterationCounter=    10, Residual= 5.78540E-02
+      EndModuleIterCounter=    12, Residual= 1.75703E-02
+     No Flow-Chem coupling
+ END STEP=      11 , TIME= 1.60752E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 5.60187E+00
+      FlowIterationCounter=    10, Residual= 5.18257E-02
+      EndModuleIterCounter=    12, Residual= 1.37472E-02
+     No Flow-Chem coupling
+ END STEP=      12 , TIME= 1.97903E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 6.83835E+00
+      FlowIterationCounter=    10, Residual= 4.20489E-02
+      EndModuleIterCounter=    12, Residual= 1.08564E-02
+     No Flow-Chem coupling
+ END STEP=      13 , TIME= 2.42483E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 7.47563E+00
+      FlowIterationCounter=    10, Residual= 3.32872E-02
+      EndModuleIterCounter=    11, Residual= 1.68084E-02
+     No Flow-Chem coupling
+ END STEP=      14 , TIME= 2.95980E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 7.22419E+00
+      FlowIterationCounter=    10, Residual= 2.58159E-02
+      EndModuleIterCounter=    11, Residual= 1.28103E-02
+     No Flow-Chem coupling
+ END STEP=      15 , TIME= 3.60176E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 6.44218E+00
+      FlowIterationCounter=    10, Residual= 1.94206E-02
+      EndModuleIterCounter=    10, Residual= 1.94206E-02
+     No Flow-Chem coupling
+ END STEP=      16 , TIME= 4.37211E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 5.43292E+00
+      FlowIterationCounter=    10, Residual= 1.40977E-02
+      EndModuleIterCounter=    10, Residual= 1.40977E-02
+     No Flow-Chem coupling
+ END STEP=      17 , TIME= 5.29653E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 4.05963E+00
+      EndModuleIterCounter=     9, Residual= 1.98647E-02
+     No Flow-Chem coupling
+ END STEP=      18 , TIME= 6.29653E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 2.83746E+00
+      EndModuleIterCounter=     9, Residual= 1.33832E-02
+     No Flow-Chem coupling
+ END STEP=      19 , TIME= 7.29653E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 2.01294E+00
+      EndModuleIterCounter=     8, Residual= 1.88441E-02
+     No Flow-Chem coupling
+ END STEP=      20 , TIME= 8.29653E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 1.44540E+00
+      EndModuleIterCounter=     8, Residual= 1.32571E-02
+     No Flow-Chem coupling
+ END STEP=      21 , TIME= 9.29653E+00
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 7.87921E-01
+      EndModuleIterCounter=     7, Residual= 1.50617E-02
+     No Flow-Chem coupling
+ END STEP=      22 , TIME= 1.00000E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 1.77841E+01
+      FlowIterationCounter=    10, Residual= 4.96273E-02
+      EndModuleIterCounter=    12, Residual= 1.34566E-02
+     No Flow-Chem coupling
+ END STEP=      23 , TIME= 1.00500E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 1.09056E+01
+      FlowIterationCounter=    10, Residual= 6.38081E-02
+      EndModuleIterCounter=    12, Residual= 1.96756E-02
+     No Flow-Chem coupling
+ END STEP=      24 , TIME= 1.01100E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 9.76126E+00
+      FlowIterationCounter=    10, Residual= 2.06967E-01
+      EndModuleIterCounter=    15, Residual= 1.91201E-02
+      FlowIterationCounter=     1, Residual= 4.98591E-01
+      EndModuleIterCounter=     7, Residual= 1.14990E-02
+     No Flow-Chem coupling
+ END STEP=      25 , TIME= 1.01820E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 5.00712E+00
+      EndModuleIterCounter=     9, Residual= 1.03455E-02
+     No Flow-Chem coupling
+ END STEP=      26 , TIME= 1.02684E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.97773E+00
+      EndModuleIterCounter=     9, Residual= 9.79250E-03
+     No Flow-Chem coupling
+ END STEP=      27 , TIME= 1.03721E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.51728E+00
+      EndModuleIterCounter=     8, Residual= 1.99827E-02
+     No Flow-Chem coupling
+ END STEP=      28 , TIME= 1.04965E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.27710E+00
+      EndModuleIterCounter=     8, Residual= 1.98611E-02
+     No Flow-Chem coupling
+ END STEP=      29 , TIME= 1.06458E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.15768E+00
+      EndModuleIterCounter=     9, Residual= 9.86316E-03
+     No Flow-Chem coupling
+ END STEP=      30 , TIME= 1.08250E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.11477E+00
+      EndModuleIterCounter=     9, Residual= 1.02607E-02
+     No Flow-Chem coupling
+ END STEP=      31 , TIME= 1.10399E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.12679E+00
+      EndModuleIterCounter=     9, Residual= 1.08600E-02
+     No Flow-Chem coupling
+ END STEP=      32 , TIME= 1.12979E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.17967E+00
+      EndModuleIterCounter=     9, Residual= 1.16902E-02
+     No Flow-Chem coupling
+ END STEP=      33 , TIME= 1.16075E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.26044E+00
+      EndModuleIterCounter=     9, Residual= 1.27973E-02
+     No Flow-Chem coupling
+ END STEP=      34 , TIME= 1.19790E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.35228E+00
+      EndModuleIterCounter=     9, Residual= 1.40746E-02
+     No Flow-Chem coupling
+ END STEP=      35 , TIME= 1.24248E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.43170E+00
+      EndModuleIterCounter=     9, Residual= 1.53447E-02
+     No Flow-Chem coupling
+ END STEP=      36 , TIME= 1.29598E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.46889E+00
+      EndModuleIterCounter=     9, Residual= 1.62808E-02
+     No Flow-Chem coupling
+ END STEP=      37 , TIME= 1.36018E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.43107E+00
+      EndModuleIterCounter=     9, Residual= 1.65262E-02
+     No Flow-Chem coupling
+ END STEP=      38 , TIME= 1.43721E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 3.28775E+00
+      EndModuleIterCounter=     9, Residual= 1.75540E-02
+     No Flow-Chem coupling
+ END STEP=      39 , TIME= 1.52965E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 2.79540E+00
+      EndModuleIterCounter=     9, Residual= 1.71389E-02
+     No Flow-Chem coupling
+ END STEP=      40 , TIME= 1.62965E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 2.18954E+00
+      EndModuleIterCounter=     9, Residual= 1.39647E-02
+     No Flow-Chem coupling
+ END STEP=      41 , TIME= 1.72965E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 1.69996E+00
+      EndModuleIterCounter=     9, Residual= 1.12035E-02
+     No Flow-Chem coupling
+ END STEP=      42 , TIME= 1.82965E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 1.30923E+00
+      EndModuleIterCounter=     8, Residual= 1.66475E-02
+     No Flow-Chem coupling
+ END STEP=      43 , TIME= 1.92965E+01
+
+ ==================================================
+      FlowIterationCounter=     1, Residual= 7.61655E-01
+      EndModuleIterCounter=     7, Residual= 1.65225E-02
+     No Flow-Chem coupling
+ END STEP=      44 , TIME= 2.00000E+01
+
+ ==================================================

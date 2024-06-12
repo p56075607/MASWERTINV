@@ -1,0 +1,1016 @@
+  PROBLEM    1
+        EXAMPLE 1 FOR FLOW ONLY SIMULATION(EXAMPLE 1 IN FEMWATER,g-cm-d
+
+
+ KMODF = 1  KMODC = 0 IITR   = 0  INTER  = 0ICOND = 0  NHGCI = 0 IGEOM  = 1  IBUG   = 1ICHNG = 1  KMODT = 0 IOPHGC = 0  IOPCHN = 0
+
+ 
+ NO. OF ITERATIONS FOR FLOW AND TRANSPORT STEADY . .     1
+ NO. OF ITERATIONS FOR FLOW AND TRANSPORT TRANSIENT.     1
+ ITERATION PARAMETER FOR FLOW AND TRANSPORT STEADY .  0.100D+01
+ ITERATION PARAMETER FOR FLOW AND TRANSPORT TRANSIENT 0.100D+01
+
+
+ LGRNF=          -1 1=LE FORM, -1=CONSERVATIVE FORM
+  *** ITERATION AND OPTIONAL PARAMETERS FOR FLOW ***
+ NO. OF CYCLES FOR VARIABLE BOUNDARY CONDITIONS, NCYLF .   20
+ NO. OF ITERATIONS FOR SOLVING NONLINEAR FLOW, NITERF. .   20
+ NO. OF ITERATIONS FOR SOLVING MATRIX EQ, NPITERF. . . .  100
+ GRAVITY TERM CONTROL, KGRAV . . . . . . . . . . . . . .    1
+ MATRIX SOLVER INDICATOR FOR FLOW, IPNTSF. . . . . . . .    0
+
+ 
+ MASS MATRIX LUMPING OPTION FOR FLOW, ILUMPF . . . . . .    0
+ MID-DIFFERENCE OPTION FOR FLOW, IMIDF . . . . . . . . .    0
+ VELOCITY LUMPING INDICATOR FOR FLOW, IVMLF. . . . . . .    1
+ FLOW STEADY-STATE AND I.C. CONTROL, KSSF  . . . . . . .    1
+ STORAGE INDICATOR FOR FLOW, KSTR  . . . . . . . . . . .    0
+ RESTART CONTROL FOR FLOW, NSTRF . . . . . . . . . . . .    0
+ INTEGRATION QUADRATURE INDICATOR FOR FLOW, IQUARF . . .   22
+
+ 
+ ERROR ALLOWANCE FOR STEADY STATE FLOW SOL., TOLAF.   2.000000D-02
+ ERROR ALLOWANCE FOR TRANSIENT FLOW SOL., TOLBT . .   2.000000D-02
+ TIME-INTEGRATION PARAMETER FOR FLOW, WF. . . . . .   1.000000D+00
+ ADVECTION TERM PARAMETER FOR FLOW, WVF . . . . . .   1.000000D+00
+ ITERATION PARAMETER FOR NONLINEAR EQUATION, OMEF .   5.000000D-01
+ RELAXATION PARAMETER FOR MATRIX EQ. SOV., OMIF . .   5.000000D-01
+ CONSTRAINT ON HYDRAULIC CONDUCTIVITY, CNSTKR . . .   0.000000D+00
+
+  ***** NODAL COORDINATE DATA ***** 
+ NO. OF NODAL POINTS, NNP . . . . . . . . . . . . . .   82
+ ANGLE OF THE COORDINATE WITH HORIZONTAL, FE  . . .   0.000000D+00
+ CYLINDER COORDINATE INDICATOR, CYLIND  . . . . . .   0.000000D+00
+
+  ***** ELEMENT DATA *****
+     NO. OF ELEMENTS, NEL . . . . . . . . . . . . . . . .        40
+ NO. OF ELEMENTS REQUIRED MATERIAL CORRECTION, NCM. .    0
+
+1 
+
+   NODE          X          Z   NODE          X          Z
+   ----          -          -   ----          -          -
+      1  0.000D+00  0.000D+00      2  0.500D+02  0.000D+00
+      3  0.000D+00  0.500D+01      4  0.500D+02  0.500D+01
+      5  0.000D+00  0.100D+02      6  0.500D+02  0.100D+02
+      7  0.000D+00  0.150D+02      8  0.500D+02  0.150D+02
+      9  0.000D+00  0.200D+02     10  0.500D+02  0.200D+02
+     11  0.000D+00  0.250D+02     12  0.500D+02  0.250D+02
+     13  0.000D+00  0.300D+02     14  0.500D+02  0.300D+02
+     15  0.000D+00  0.350D+02     16  0.500D+02  0.350D+02
+     17  0.000D+00  0.400D+02     18  0.500D+02  0.400D+02
+     19  0.000D+00  0.450D+02     20  0.500D+02  0.450D+02
+     21  0.000D+00  0.500D+02     22  0.500D+02  0.500D+02
+     23  0.000D+00  0.550D+02     24  0.500D+02  0.550D+02
+     25  0.000D+00  0.600D+02     26  0.500D+02  0.600D+02
+     27  0.000D+00  0.650D+02     28  0.500D+02  0.650D+02
+     29  0.000D+00  0.700D+02     30  0.500D+02  0.700D+02
+     31  0.000D+00  0.750D+02     32  0.500D+02  0.750D+02
+     33  0.000D+00  0.800D+02     34  0.500D+02  0.800D+02
+     35  0.000D+00  0.850D+02     36  0.500D+02  0.850D+02
+     37  0.000D+00  0.900D+02     38  0.500D+02  0.900D+02
+     39  0.000D+00  0.950D+02     40  0.500D+02  0.950D+02
+     41  0.000D+00  0.100D+03     42  0.500D+02  0.100D+03
+     43  0.000D+00  0.105D+03     44  0.500D+02  0.105D+03
+     45  0.000D+00  0.110D+03     46  0.500D+02  0.110D+03
+     47  0.000D+00  0.115D+03     48  0.500D+02  0.115D+03
+     49  0.000D+00  0.120D+03     50  0.500D+02  0.120D+03
+     51  0.000D+00  0.125D+03     52  0.500D+02  0.125D+03
+     53  0.000D+00  0.130D+03     54  0.500D+02  0.130D+03
+     55  0.000D+00  0.135D+03     56  0.500D+02  0.135D+03
+     57  0.000D+00  0.140D+03     58  0.500D+02  0.140D+03
+     59  0.000D+00  0.145D+03     60  0.500D+02  0.145D+03
+     61  0.000D+00  0.150D+03     62  0.500D+02  0.150D+03
+     63  0.000D+00  0.155D+03     64  0.500D+02  0.155D+03
+     65  0.000D+00  0.160D+03     66  0.500D+02  0.160D+03
+     67  0.000D+00  0.165D+03     68  0.500D+02  0.165D+03
+     69  0.000D+00  0.170D+03     70  0.500D+02  0.170D+03
+     71  0.000D+00  0.175D+03     72  0.500D+02  0.175D+03
+     73  0.000D+00  0.180D+03     74  0.500D+02  0.180D+03
+     75  0.000D+00  0.185D+03     76  0.500D+02  0.185D+03
+     77  0.000D+00  0.190D+03     78  0.500D+02  0.190D+03
+     79  0.000D+00  0.195D+03     80  0.500D+02  0.195D+03
+     81  0.000D+00  0.200D+03     82  0.500D+02  0.200D+03
+1  **** GLOBAL INDICES OF ELEMENT NODES ****
+       ELM NOD1 NOD2 NOD3 NOD4 MTYP       ELM NOD1 NOD2 NOD3 NOD4 MTYP
+       --- ---- ---- ---- ---- ----       --- ---- ---- ---- ---- ----
+         1    1    2    4    3    1         2    3    4    6    5    1
+         3    5    6    8    7    1         4    7    8   10    9    1
+         5    9   10   12   11    1         6   11   12   14   13    1
+         7   13   14   16   15    1         8   15   16   18   17    1
+         9   17   18   20   19    1        10   19   20   22   21    1
+        11   21   22   24   23    1        12   23   24   26   25    1
+        13   25   26   28   27    1        14   27   28   30   29    1
+        15   29   30   32   31    1        16   31   32   34   33    1
+        17   33   34   36   35    1        18   35   36   38   37    1
+        19   37   38   40   39    1        20   39   40   42   41    1
+        21   41   42   44   43    1        22   43   44   46   45    1
+        23   45   46   48   47    1        24   47   48   50   49    1
+        25   49   50   52   51    1        26   51   52   54   53    1
+        27   53   54   56   55    1        28   55   56   58   57    1
+        29   57   58   60   59    1        30   59   60   62   61    1
+        31   61   62   64   63    1        32   63   64   66   65    1
+        33   65   66   68   67    1        34   67   68   70   69    1
+        35   69   70   72   71    1        36   71   72   74   73    1
+        37   73   74   76   75    1        38   75   76   78   77    1
+        39   77   78   80   79    1        40   79   80   82   81    1
+ 
+      IHALFB = 3  IBAND = 7  IHBP = 4
+
+     *** TIME CONTROL PARAMTER ***
+ NUMBER OF TIME INCREMENTS FOR FLOW, NTIF. . . . . . . .   44
+ NUMBER OF TIME INCREMENTS FOR TRANSPORT, NTI, . . . . .    0
+ TIME INCREMENT, DELT . . . . . . . . . . . . . .    5.000000D-02
+ MULTIPLIER FOR INCREASING DELT, CHNG . . . . . .    2.000000D-01
+ MAXIMUM VALUE OF DELT, DELMAX. . . . . . . . . .    1.000000D+00
+ MAXIMUM VALUE OF TIME, TMAX. . . . . . . . . . .    2.000000D+01
+
+ 
+ NO. OF TIMES TO LINE-PRINT THE RESULTS, NTIPRT. . . . .    9
+
+ 
+ NO. OF TIMES TO WRITE THE RESULTS ON DISK, NTISTO . . .   45
+
+ 
+ LINE PRINTER OUTPUT CONTROL
+       0 2 0 0 0 0 0 0 0 0 0 0 0 0 0 2 0 0 0 0 0 0 2 0 0 0 0 0 0 0
+       0 0 0 0 0 0 0 0 0 2 2 2 2 2 5
+ 
+ DISK OUTPUT CONTROL
+       1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+       1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+ 
+     NO. OF TIMES TO RESET TIME-STEP SIZE, NDTCHG. . . . . .    3
+     TIMES WHEN DELT ARE RESET 
+          0.1000D+02  0.2000D+02  0.1000+100
+ 
+ **** NUMBER OF MATERIALS: NMAT =  1
+
+  **** MATERIAL AND SOIL PROPERTIES FOR FLOW ***
+      NUMBER OF MATERIAL PROPERTIES PER MATERIAL, NMPPMf .   11
+      PERMEABILITY INPUT CONTROL, KCP  . . . . . . . . . .    0
+      NUMBER OF SOIL PROPERTY PARAMETERS, NSPPM  . . . . .    4
+      SOIL PROPERTY TABULAR INPUT CONTROL, KSP . . . . . .   -1
+      ACCELERATION OF GRAVITY, GRAV . . . . . . . . .   7.320000D+12
+      REFERENCE PRESSURE HEAD, HO . . . . . . . . . .   0.000000D+00
+     MAT NO     ALP        BETA         POR       KSX/PSX     KSZ/PSZ    KSXZ/PSXZ
+                RHO0      VISCO0      RHOB      FRACT. N    ARCHIN  
+           1 0.0000D+00 0.0000D+00 4.5000D-01 0.0000D+00 1.0000D+01 0.0000D+00
+ 1.0000D+00 8.6570D+02 1.2000D+00 1.5000D-01 0.0000D+00
+  *** SOIL PROPERTY ANALYTICAL PARAMETERS
+     MAT NO.   PARMS FOR TH   PARMS FOR KR
+     -------   ------------   ------------
+
+           1     1.5000D-01     0.0000D+00
+     4.5000D-01     0.0000D+00
+     0.0000D+00     0.0000D+00
+    -1.0000D+02     0.0000D+00
+0
+     *** Maximum No of Elements Connected to Any NodeKJBD =     2
+0
+     *** Maximum No of Nodes Connected to Any NodeNJBD =     6
+1
+     ** CONNECTING NODES TO EACH OF ALL NODES **
+     NP    1    2    3    4    5    6    7    8    9
+     --    -    -    -    -    -    -    -    -    -
+
+      1    1    2    4    3    0    0
+      2    1    2    4    3    0    0
+      3    1    2    4    3    6    5
+      4    1    2    4    3    6    5
+      5    3    4    6    5    8    7
+      6    3    4    6    5    8    7
+      7    5    6    8    7   10    9
+      8    5    6    8    7   10    9
+      9    7    8   10    9   12   11
+     10    7    8   10    9   12   11
+     11    9   10   12   11   14   13
+     12    9   10   12   11   14   13
+     13   11   12   14   13   16   15
+     14   11   12   14   13   16   15
+     15   13   14   16   15   18   17
+     16   13   14   16   15   18   17
+     17   15   16   18   17   20   19
+     18   15   16   18   17   20   19
+     19   17   18   20   19   22   21
+     20   17   18   20   19   22   21
+     21   19   20   22   21   24   23
+     22   19   20   22   21   24   23
+     23   21   22   24   23   26   25
+     24   21   22   24   23   26   25
+     25   23   24   26   25   28   27
+     26   23   24   26   25   28   27
+     27   25   26   28   27   30   29
+     28   25   26   28   27   30   29
+     29   27   28   30   29   32   31
+     30   27   28   30   29   32   31
+     31   29   30   32   31   34   33
+     32   29   30   32   31   34   33
+     33   31   32   34   33   36   35
+     34   31   32   34   33   36   35
+     35   33   34   36   35   38   37
+     36   33   34   36   35   38   37
+     37   35   36   38   37   40   39
+     38   35   36   38   37   40   39
+     39   37   38   40   39   42   41
+     40   37   38   40   39   42   41
+     41   39   40   42   41   44   43
+     42   39   40   42   41   44   43
+     43   41   42   44   43   46   45
+     44   41   42   44   43   46   45
+     45   43   44   46   45   48   47
+     46   43   44   46   45   48   47
+     47   45   46   48   47   50   49
+     48   45   46   48   47   50   49
+     49   47   48   50   49   52   51
+     50   47   48   50   49   52   51
+1
+     ** CONNECTING NODES TO EACH OF ALL NODES **
+     NP    1    2    3    4    5    6    7    8    9
+     --    -    -    -    -    -    -    -    -    -
+
+     51   49   50   52   51   54   53
+     52   49   50   52   51   54   53
+     53   51   52   54   53   56   55
+     54   51   52   54   53   56   55
+     55   53   54   56   55   58   57
+     56   53   54   56   55   58   57
+     57   55   56   58   57   60   59
+     58   55   56   58   57   60   59
+     59   57   58   60   59   62   61
+     60   57   58   60   59   62   61
+     61   59   60   62   61   64   63
+     62   59   60   62   61   64   63
+     63   61   62   64   63   66   65
+     64   61   62   64   63   66   65
+     65   63   64   66   65   68   67
+     66   63   64   66   65   68   67
+     67   65   66   68   67   70   69
+     68   65   66   68   67   70   69
+     69   67   68   70   69   72   71
+     70   67   68   70   69   72   71
+     71   69   70   72   71   74   73
+     72   69   70   72   71   74   73
+     73   71   72   74   73   76   75
+     74   71   72   74   73   76   75
+     75   73   74   76   75   78   77
+     76   73   74   76   75   78   77
+     77   75   76   78   77   80   79
+     78   75   76   78   77   80   79
+     79   77   78   80   79   82   81
+     80   77   78   80   79   82   81
+     81   79   80   82   81    0    0
+     82   79   80   82   81    0    0
+1
+ ** CONNECTING ELEMENTS TO EACH OF ALL NODES **
+    NP    1    2    3    4   NP    1    2    3    4   NP    1    2    3    4
+   ---    -    -    -    -  ---    -    -    -    -  ---    -    -    -    -
+     1    1    2    1    3    1    2
+     4    1    2    5    2    3    6    2    3
+     7    3    4    8    3    4    9    4    5
+    10    4    5   11    5    6   12    5    6
+    13    6    7   14    6    7   15    7    8
+    16    7    8   17    8    9   18    8    9
+    19    9   10   20    9   10   21   10   11
+    22   10   11   23   11   12   24   11   12
+    25   12   13   26   12   13   27   13   14
+    28   13   14   29   14   15   30   14   15
+    31   15   16   32   15   16   33   16   17
+    34   16   17   35   17   18   36   17   18
+    37   18   19   38   18   19   39   19   20
+    40   19   20   41   20   21   42   20   21
+    43   21   22   44   21   22   45   22   23
+    46   22   23   47   23   24   48   23   24
+    49   24   25   50   24   25   51   25   26
+    52   25   26   53   26   27   54   26   27
+    55   27   28   56   27   28   57   28   29
+    58   28   29   59   29   30   60   29   30
+    61   30   31   62   30   31   63   31   32
+    64   31   32   65   32   33   66   32   33
+    67   33   34   68   33   34   69   34   35
+    70   34   35   71   35   36   72   35   36
+    73   36   37   74   36   37   75   37   38
+    76   37   38   77   38   39   78   38   39
+    79   39   40   80   39   40   81   40
+    82   40
+1
+
+          *** COMPUTED BOUNDARY ELEMENT SIDE INFORMATION***
+
+        MP    M  NP1  NP2 L1 L2   DLB(MP)  DCOSXB(MP), DCOSZB(MP)
+         1    1    1    2  1  2  0.500D+02  0.000D+00 -0.100D+01
+         2    1    2    4  2  3  0.500D+01  0.100D+01 -0.612D-16
+         3    1    3    1  4  1  0.500D+01 -0.100D+01 -0.612D-16
+         4    2    4    6  2  3  0.500D+01  0.100D+01 -0.612D-16
+         5    2    5    3  4  1  0.500D+01 -0.100D+01 -0.612D-16
+         6    3    6    8  2  3  0.500D+01  0.100D+01 -0.612D-16
+         7    3    7    5  4  1  0.500D+01 -0.100D+01 -0.612D-16
+         8    4    8   10  2  3  0.500D+01  0.100D+01 -0.612D-16
+         9    4    9    7  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        10    5   10   12  2  3  0.500D+01  0.100D+01 -0.612D-16
+        11    5   11    9  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        12    6   12   14  2  3  0.500D+01  0.100D+01 -0.612D-16
+        13    6   13   11  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        14    7   14   16  2  3  0.500D+01  0.100D+01 -0.612D-16
+        15    7   15   13  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        16    8   16   18  2  3  0.500D+01  0.100D+01 -0.612D-16
+        17    8   17   15  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        18    9   18   20  2  3  0.500D+01  0.100D+01 -0.612D-16
+        19    9   19   17  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        20   10   20   22  2  3  0.500D+01  0.100D+01 -0.612D-16
+        21   10   21   19  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        22   11   22   24  2  3  0.500D+01  0.100D+01 -0.612D-16
+        23   11   23   21  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        24   12   24   26  2  3  0.500D+01  0.100D+01 -0.612D-16
+        25   12   25   23  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        26   13   26   28  2  3  0.500D+01  0.100D+01 -0.612D-16
+        27   13   27   25  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        28   14   28   30  2  3  0.500D+01  0.100D+01 -0.612D-16
+        29   14   29   27  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        30   15   30   32  2  3  0.500D+01  0.100D+01 -0.612D-16
+        31   15   31   29  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        32   16   32   34  2  3  0.500D+01  0.100D+01 -0.612D-16
+        33   16   33   31  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        34   17   34   36  2  3  0.500D+01  0.100D+01 -0.612D-16
+        35   17   35   33  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        36   18   36   38  2  3  0.500D+01  0.100D+01 -0.612D-16
+        37   18   37   35  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        38   19   38   40  2  3  0.500D+01  0.100D+01 -0.612D-16
+        39   19   39   37  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        40   20   40   42  2  3  0.500D+01  0.100D+01 -0.612D-16
+        41   20   41   39  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        42   21   42   44  2  3  0.500D+01  0.100D+01 -0.612D-16
+        43   21   43   41  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        44   22   44   46  2  3  0.500D+01  0.100D+01 -0.612D-16
+        45   22   45   43  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        46   23   46   48  2  3  0.500D+01  0.100D+01 -0.612D-16
+        47   23   47   45  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        48   24   48   50  2  3  0.500D+01  0.100D+01 -0.612D-16
+        49   24   49   47  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        50   25   50   52  2  3  0.500D+01  0.100D+01 -0.612D-16
+1
+
+          *** COMPUTED BOUNDARY ELEMENT SIDE INFORMATION***
+
+        MP    M  NP1  NP2 L1 L2   DLB(MP)  DCOSXB(MP), DCOSZB(MP)
+        51   25   51   49  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        52   26   52   54  2  3  0.500D+01  0.100D+01 -0.612D-16
+        53   26   53   51  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        54   27   54   56  2  3  0.500D+01  0.100D+01 -0.612D-16
+        55   27   55   53  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        56   28   56   58  2  3  0.500D+01  0.100D+01 -0.612D-16
+        57   28   57   55  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        58   29   58   60  2  3  0.500D+01  0.100D+01 -0.612D-16
+        59   29   59   57  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        60   30   60   62  2  3  0.500D+01  0.100D+01 -0.612D-16
+        61   30   61   59  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        62   31   62   64  2  3  0.500D+01  0.100D+01 -0.612D-16
+        63   31   63   61  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        64   32   64   66  2  3  0.500D+01  0.100D+01 -0.612D-16
+        65   32   65   63  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        66   33   66   68  2  3  0.500D+01  0.100D+01 -0.612D-16
+        67   33   67   65  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        68   34   68   70  2  3  0.500D+01  0.100D+01 -0.612D-16
+        69   34   69   67  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        70   35   70   72  2  3  0.500D+01  0.100D+01 -0.612D-16
+        71   35   71   69  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        72   36   72   74  2  3  0.500D+01  0.100D+01 -0.612D-16
+        73   36   73   71  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        74   37   74   76  2  3  0.500D+01  0.100D+01 -0.612D-16
+        75   37   75   73  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        76   38   76   78  2  3  0.500D+01  0.100D+01 -0.612D-16
+        77   38   77   75  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        78   39   78   80  2  3  0.500D+01  0.100D+01 -0.612D-16
+        79   39   79   77  4  1  0.500D+01 -0.100D+01 -0.612D-16
+        80   40   80   82  2  3  0.500D+01  0.100D+01 -0.612D-16
+        81   40   82   81  3  4  0.500D+02  0.122D-15  0.100D+01
+        82   40   81   79  4  1  0.500D+01 -0.100D+01 -0.612D-16
+   **** ELEMENT SOURCE/SINK  ****
+
+     NO. OF ELEMENT-SOURCE/SINK ELEMENTS, NSEL  . . . . .    0
+     NO. OF ELEMENT-SOURCE/SINK PROFILES, NSPR  . . . . .    0
+     NO. OF DATA POINTS ON ELEMENT-SOURCE/SINK PROFILE  .    0
+     ANALYTICAL ELEMENT-SOURCE/SINK INPUT CONTROL  . . .
+   **** WELL SOURCE/SINK  ****
+
+     NO. OF WELL-SOURCE/SINK NODES, NWNP  . . . . . . . .    0
+     NO. OF WELL-SOURCE/SINK PROFILES, NWPR   . . . . . .    0
+     NO. OF DATA POINTS ON WELL-SOURCE/SINK PROFILE . . .    0
+     ANAYTICAL WELL-SOURCE/SINK INPUT CONTROL  . . . . .
+  **** RAINFALL-SEEPAGE BOUNDARY CONDITIONS ****
+
+     NO. OF STEPS OF SUCCESSIVE LINERIZATION, NSTSV . .     1
+     NO. OF RAINFALL-SEEPAGE ELEMENT SIDES, NVES  . . .     1
+     NO. OF RAINFALL-SEEPAGE NODAL POINTS, NVNP . . . .     2
+     NO. OF RAINFALL PROFILES, NVPR   . . . . . . . . .     1
+     NO. OF DATA POINTS ON RAINFALL PROFILES, NVDP  . .     4
+
+
+ 
+
+
+           --- RAINFALL PROFILE ---
+ 
+     PROFILE NO. 1
+    TIME       RAINS      TIME       RAINS      TIME       RAINS
+    ----      ------      ----      ------      ----      ------
+   0.000D+00  5.000D+00  1.000D+01  5.000D+00  1.000D+01 -5.000D+00
+  1.000D+38 -5.000D+00
+ 
+           --- LIST OF RS-NODAL POINTS ---
+
+             81   82
+ 
+           --- RAINFALL TYPE AND PONDING DEPTH ---
+
+      I MPVB RTYP   HCON(I)    HMIN(I)       I MPVB RTYP   HCON(I)    HMIN(I)   
+
+      1   40    1  0.000D+00 -0.900D+02
+ 
+
+           --- RAINFALL-SEEPAGE ELEMENT SIDE DATA ---
+
+        MP    M CNP1 CNP2     MP    M CNP1 CNP2     MP    M CNP1 CNP2  
+         1   40    1    2
+ 
+
+          *** COMPUTED RAINFALL SEEPAGE ELEMENT SIDE INFORMATION ***
+
+        MP    M CNP1 CNP2 L1 L2   DL(MP)   DCOSX(MP)  DCOSZ(MP) 
+         1   40    2    1  3  4  0.500D+02  0.122D-15  0.100D+01
+ 
+     **** DIRICHLET BOUNDARY CONDITIONS ****
+     NO. OF DIRICHLET NODES, NDNP . . . . . . . . . . .     2
+     NO. OF DIRICHLET PROFILES, NDPR  . . . . . . . . .     1
+     NO. OF DATA POINTS ON DIRICHLET PROFILES, NDDP . .     2
+
+
+ 
+     PROFILE NO. 1
+    TIME       HEAD       TIME       HEAD       TIME       HEAD 
+    ----       ----       ----       ----       ----       ---- 
+   0.000D+00  0.000D+00  1.000D+38  0.000D+00
+ 
+
+          GLOBAL NODAL NUMBER AND PROFILE TYPES
+
+        I NPDB DTYP        I NPDB DTYP        I NPDB DTYP     
+         1    1    1         2    2    1
+  COUPLED ITERATION INFORMATION AT ITM =    1
+
+  TABLE OF SYSTEM-FLOW PARAMETERS  TABLE:    0.. AT TIME =  5.0000D-02
+  (DELT =  5.0000D-02) ITIM=   1
+
+      TYPE OF FLOW  RATE(L**3/T/L)   INC. FLOW(L**3/L)    TOTAL FLOW(L**3/L)
+       1. FLOW THROUGH DIRICHLET NODES .. . . -2.11E+03  -1.05E+02  -1.05E+02
+       2. FLOW THROUGH CAUCHY NODES . . . . .  0.00E+00   0.00E+00   0.00E+00
+       3. FLOW THROUGH NEUMANN NODES .  . . .  0.00E+00   0.00E+00   0.00E+00
+       4. FLOW THROUGH SEEPAGE NODES .. . . .  0.00E+00   0.00E+00   0.00E+00
+       5. FLOW THROUGH INFILTRATION NODES . . -2.05E+02  -1.02E+01  -1.02E+01
+       6. FLOW THROUGH UNSPECIFIED NODES  . .  0.00E+00   0.00E+00   0.00E+00
+       7. NET FLOW THROUGH ENTIRE BOUNDARY  . -2.31E+03  -1.16E+02  -1.16E+02
+       8. ARTIFICIAL SOURCES/SINKS . . . .     0.00E+00   0.00E+00   0.00E+00
+       9. INCREASE IN WATER CONTENT . . . . .  2.31E+03   2.50E+02   2.50E+02
+       A. FLOW THROUGH RIVER NODES  . . . . .  0.00E+00   0.00E+00   0.00E+00
+      *** NOTE: (+) = OUT FROM, (-) = INTO THE REGION. 
+
+
+
+ RAINFALL-SEEPAGE NODAL FLOWS (((L**3/T)/L**2).L).
+    -0.10236D+03   -0.10236D+03
+  VALUES OF NPCON
+    0    0
+  VALUES OF NPMIN
+    0    0
+  VALUES OF NPFLX
+   81   82
+ OUTPUT TABLE   1.. PRESSURE HEADS(L) AT TIME =  5.0000D-02
+  (DELT =  5.0000D-02),(BAND WIDTH =   7)  IT =    1
+
+                                 
+  NODE I      PRESSURE HEAD (L) OF NODES I,I+1,..,I+4
+
+      1    0.0000D+00    0.0000D+00   -2.8295D+01   -2.8295D+01   -5.3717D+01
+      6   -5.3717D+01   -7.3634D+01   -7.3634D+01   -8.7823D+01   -8.7823D+01
+     11   -9.5654D+01   -9.5654D+01   -9.7108D+01   -9.7108D+01   -9.6987D+01
+     16   -9.6987D+01   -9.7001D+01   -9.7001D+01   -9.7000D+01   -9.7000D+01
+     21   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01
+     26   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01
+     31   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01
+     36   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01
+     41   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01
+     46   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01
+     51   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01
+     56   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01   -9.7000D+01
+     61   -9.7000D+01   -9.7000D+01   -9.6999D+01   -9.6999D+01   -9.6998D+01
+     66   -9.6998D+01   -9.6995D+01   -9.6995D+01   -9.6989D+01   -9.6989D+01
+     71   -9.6964D+01   -9.6964D+01   -9.6848D+01   -9.6848D+01   -9.6289D+01
+     76   -9.6289D+01   -9.4239D+01   -9.4239D+01   -8.9270D+01   -8.9270D+01
+     81   -8.1436D+01   -8.1436D+01
+  COUPLED ITERATION INFORMATION AT ITM =   15
+
+  TABLE OF SYSTEM-FLOW PARAMETERS  TABLE:    1.. AT TIME =  3.6018D+00
+  (DELT =  6.4196D-01) ITIM=  15
+
+      TYPE OF FLOW  RATE(L**3/T/L)   INC. FLOW(L**3/L)    TOTAL FLOW(L**3/L)
+       1. FLOW THROUGH DIRICHLET NODES .. . .  5.57E+01   3.58E+01   3.58E+01
+       2. FLOW THROUGH CAUCHY NODES . . . . .  0.00E+00   0.00E+00   0.00E+00
+       3. FLOW THROUGH NEUMANN NODES .  . . .  0.00E+00   0.00E+00   0.00E+00
+       4. FLOW THROUGH SEEPAGE NODES .. . . .  0.00E+00   0.00E+00   0.00E+00
+       5. FLOW THROUGH INFILTRATION NODES . . -2.50E+02  -1.60E+02  -1.60E+02
+       6. FLOW THROUGH UNSPECIFIED NODES  . . -2.84E-14  -2.84E-14  -2.84E-14
+       7. NET FLOW THROUGH ENTIRE BOUNDARY  . -1.94E+02  -1.25E+02  -1.25E+02
+       8. ARTIFICIAL SOURCES/SINKS . . . .     0.00E+00   0.00E+00   0.00E+00
+       9. INCREASE IN WATER CONTENT . . . . .  1.94E+02   1.54E+03   1.54E+03
+       A. FLOW THROUGH RIVER NODES  . . . . .  0.00E+00   0.00E+00   0.00E+00
+      *** NOTE: (+) = OUT FROM, (-) = INTO THE REGION. 
+
+
+
+ RAINFALL-SEEPAGE NODAL FLOWS (((L**3/T)/L**2).L).
+    -0.12488D+03   -0.12488D+03
+  VALUES OF NPCON
+    0    0
+  VALUES OF NPMIN
+    0    0
+  VALUES OF NPFLX
+   81   82
+ OUTPUT TABLE   2.. PRESSURE HEADS(L) AT TIME =  3.6018D+00
+  (DELT =  6.4196D-01),(BAND WIDTH =   7)  IT =   15
+
+                                 
+  NODE I      PRESSURE HEAD (L) OF NODES I,I+1,..,I+4
+
+      1    0.0000D+00    0.0000D+00   -4.4341D+00   -4.4341D+00   -8.8358D+00
+      6   -8.8358D+00   -1.3196D+01   -1.3196D+01   -1.7503D+01   -1.7503D+01
+     11   -2.1746D+01   -2.1746D+01   -2.5908D+01   -2.5908D+01   -2.9974D+01
+     16   -2.9974D+01   -3.3922D+01   -3.3922D+01   -3.7730D+01   -3.7730D+01
+     21   -4.1370D+01   -4.1370D+01   -4.4814D+01   -4.4814D+01   -4.8029D+01
+     26   -4.8029D+01   -5.0980D+01   -5.0980D+01   -5.3636D+01   -5.3636D+01
+     31   -5.5966D+01   -5.5966D+01   -5.7948D+01   -5.7948D+01   -5.9569D+01
+     36   -5.9569D+01   -6.0832D+01   -6.0832D+01   -6.1752D+01   -6.1752D+01
+     41   -6.2358D+01   -6.2358D+01   -6.2686D+01   -6.2686D+01   -6.2780D+01
+     46   -6.2780D+01   -6.2680D+01   -6.2680D+01   -6.2428D+01   -6.2428D+01
+     51   -6.2058D+01   -6.2058D+01   -6.1602D+01   -6.1602D+01   -6.1083D+01
+     56   -6.1083D+01   -6.0522D+01   -6.0522D+01   -5.9936D+01   -5.9936D+01
+     61   -5.9337D+01   -5.9337D+01   -5.8735D+01   -5.8735D+01   -5.8137D+01
+     66   -5.8137D+01   -5.7549D+01   -5.7549D+01   -5.6975D+01   -5.6975D+01
+     71   -5.6420D+01   -5.6420D+01   -5.5884D+01   -5.5884D+01   -5.5371D+01
+     76   -5.5371D+01   -5.4880D+01   -5.4880D+01   -5.4412D+01   -5.4412D+01
+     81   -5.3969D+01   -5.3969D+01
+  COUPLED ITERATION INFORMATION AT ITM =   22
+
+  TABLE OF SYSTEM-FLOW PARAMETERS  TABLE:    2.. AT TIME =  1.0000D+01
+  (DELT =  7.0347D-01) ITIM=  22
+
+      TYPE OF FLOW  RATE(L**3/T/L)   INC. FLOW(L**3/L)    TOTAL FLOW(L**3/L)
+       1. FLOW THROUGH DIRICHLET NODES .. . .  2.28E+02   1.60E+02   1.60E+02
+       2. FLOW THROUGH CAUCHY NODES . . . . .  0.00E+00   0.00E+00   0.00E+00
+       3. FLOW THROUGH NEUMANN NODES .  . . .  0.00E+00   0.00E+00   0.00E+00
+       4. FLOW THROUGH SEEPAGE NODES .. . . .  0.00E+00   0.00E+00   0.00E+00
+       5. FLOW THROUGH INFILTRATION NODES . . -2.50E+02  -1.76E+02  -1.76E+02
+       6. FLOW THROUGH UNSPECIFIED NODES  . .  0.00E+00   8.88E-15   8.88E-15
+       7. NET FLOW THROUGH ENTIRE BOUNDARY  . -2.20E+01  -1.55E+01  -1.55E+01
+       8. ARTIFICIAL SOURCES/SINKS . . . .     0.00E+00   0.00E+00   0.00E+00
+       9. INCREASE IN WATER CONTENT . . . . .  2.20E+01   1.98E+03   1.98E+03
+       A. FLOW THROUGH RIVER NODES  . . . . .  0.00E+00   0.00E+00   0.00E+00
+      *** NOTE: (+) = OUT FROM, (-) = INTO THE REGION. 
+
+
+
+ RAINFALL-SEEPAGE NODAL FLOWS (((L**3/T)/L**2).L).
+    -0.12486D+03   -0.12486D+03
+  VALUES OF NPCON
+    0    0
+  VALUES OF NPMIN
+    0    0
+  VALUES OF NPFLX
+   81   82
+ OUTPUT TABLE   3.. PRESSURE HEADS(L) AT TIME =  1.0000D+01
+  (DELT =  7.0347D-01),(BAND WIDTH =   7)  IT =   22
+
+                                 
+  NODE I      PRESSURE HEAD (L) OF NODES I,I+1,..,I+4
+
+      1    0.0000D+00    0.0000D+00   -2.7023D+00   -2.7023D+00   -5.3399D+00
+      6   -5.3399D+00   -7.9101D+00   -7.9101D+00   -1.0410D+01   -1.0410D+01
+     11   -1.2837D+01   -1.2837D+01   -1.5189D+01   -1.5189D+01   -1.7463D+01
+     16   -1.7463D+01   -1.9657D+01   -1.9657D+01   -2.1768D+01   -2.1768D+01
+     21   -2.3794D+01   -2.3794D+01   -2.5733D+01   -2.5733D+01   -2.7585D+01
+     26   -2.7585D+01   -2.9346D+01   -2.9346D+01   -3.1018D+01   -3.1018D+01
+     31   -3.2599D+01   -3.2599D+01   -3.4089D+01   -3.4089D+01   -3.5488D+01
+     36   -3.5488D+01   -3.6798D+01   -3.6798D+01   -3.8020D+01   -3.8020D+01
+     41   -3.9156D+01   -3.9156D+01   -4.0207D+01   -4.0207D+01   -4.1176D+01
+     46   -4.1176D+01   -4.2067D+01   -4.2067D+01   -4.2883D+01   -4.2883D+01
+     51   -4.3627D+01   -4.3627D+01   -4.4304D+01   -4.4304D+01   -4.4916D+01
+     56   -4.4916D+01   -4.5469D+01   -4.5469D+01   -4.5966D+01   -4.5966D+01
+     61   -4.6411D+01   -4.6411D+01   -4.6809D+01   -4.6809D+01   -4.7162D+01
+     66   -4.7162D+01   -4.7476D+01   -4.7476D+01   -4.7753D+01   -4.7753D+01
+     71   -4.7998D+01   -4.7998D+01   -4.8212D+01   -4.8212D+01   -4.8400D+01
+     76   -4.8400D+01   -4.8564D+01   -4.8564D+01   -4.8707D+01   -4.8707D+01
+     81   -4.8830D+01   -4.8830D+01
+  COUPLED ITERATION INFORMATION AT ITM =   39
+
+  TABLE OF SYSTEM-FLOW PARAMETERS  TABLE:    3.. AT TIME =  1.5297D+01
+  (DELT =  9.2442D-01) ITIM=  39
+
+      TYPE OF FLOW  RATE(L**3/T/L)   INC. FLOW(L**3/L)    TOTAL FLOW(L**3/L)
+       1. FLOW THROUGH DIRICHLET NODES .. . .  1.12E+02   1.04E+02   1.04E+02
+       2. FLOW THROUGH CAUCHY NODES . . . . .  0.00E+00   0.00E+00   0.00E+00
+       3. FLOW THROUGH NEUMANN NODES .  . . .  0.00E+00   0.00E+00   0.00E+00
+       4. FLOW THROUGH SEEPAGE NODES .. . . .  0.00E+00   0.00E+00   0.00E+00
+       5. FLOW THROUGH INFILTRATION NODES . . -4.94E+01  -4.56E+01  -4.56E+01
+       6. FLOW THROUGH UNSPECIFIED NODES  . .  0.00E+00   7.11E-15   7.11E-15
+       7. NET FLOW THROUGH ENTIRE BOUNDARY  .  6.30E+01   5.82E+01   5.82E+01
+       8. ARTIFICIAL SOURCES/SINKS . . . .     0.00E+00   0.00E+00   0.00E+00
+       9. INCREASE IN WATER CONTENT . . . . . -6.30E+01   1.23E+03   1.23E+03
+       A. FLOW THROUGH RIVER NODES  . . . . .  0.00E+00   0.00E+00   0.00E+00
+      *** NOTE: (+) = OUT FROM, (-) = INTO THE REGION. 
+
+
+
+ RAINFALL-SEEPAGE NODAL FLOWS (((L**3/T)/L**2).L).
+    -0.24679D+02   -0.24679D+02
+  VALUES OF NPCON
+    0    0
+  VALUES OF NPMIN
+   81   82
+  VALUES OF NPFLX
+    0    0
+ OUTPUT TABLE   4.. PRESSURE HEADS(L) AT TIME =  1.5297D+01
+  (DELT =  9.2442D-01),(BAND WIDTH =   7)  IT =   39
+
+                                 
+  NODE I      PRESSURE HEAD (L) OF NODES I,I+1,..,I+4
+
+      1    0.0000D+00    0.0000D+00   -3.8618D+00   -3.8618D+00   -7.6787D+00
+      6   -7.6787D+00   -1.1449D+01   -1.1449D+01   -1.5172D+01   -1.5172D+01
+     11   -1.8845D+01   -1.8845D+01   -2.2466D+01   -2.2466D+01   -2.6034D+01
+     16   -2.6034D+01   -2.9546D+01   -2.9546D+01   -3.3001D+01   -3.3001D+01
+     21   -3.6396D+01   -3.6396D+01   -3.9729D+01   -3.9729D+01   -4.2996D+01
+     26   -4.2996D+01   -4.6195D+01   -4.6195D+01   -4.9324D+01   -4.9324D+01
+     31   -5.2378D+01   -5.2378D+01   -5.5353D+01   -5.5353D+01   -5.8246D+01
+     36   -5.8246D+01   -6.1052D+01   -6.1052D+01   -6.3766D+01   -6.3766D+01
+     41   -6.6382D+01   -6.6382D+01   -6.8893D+01   -6.8893D+01   -7.1292D+01
+     46   -7.1292D+01   -7.3572D+01   -7.3572D+01   -7.5724D+01   -7.5724D+01
+     51   -7.7738D+01   -7.7738D+01   -7.9606D+01   -7.9606D+01   -8.1317D+01
+     56   -8.1317D+01   -8.2865D+01   -8.2865D+01   -8.4241D+01   -8.4241D+01
+     61   -8.5444D+01   -8.5444D+01   -8.6474D+01   -8.6474D+01   -8.7337D+01
+     66   -8.7337D+01   -8.8044D+01   -8.8044D+01   -8.8609D+01   -8.8609D+01
+     71   -8.9049D+01   -8.9049D+01   -8.9383D+01   -8.9383D+01   -8.9629D+01
+     76   -8.9629D+01   -8.9804D+01   -8.9804D+01   -8.9923D+01   -8.9923D+01
+     81   -9.0000D+01   -9.0000D+01
+  COUPLED ITERATION INFORMATION AT ITM =   40
+
+  TABLE OF SYSTEM-FLOW PARAMETERS  TABLE:    4.. AT TIME =  1.6297D+01
+  (DELT =  1.0000D+00) ITIM=  40
+
+      TYPE OF FLOW  RATE(L**3/T/L)   INC. FLOW(L**3/L)    TOTAL FLOW(L**3/L)
+       1. FLOW THROUGH DIRICHLET NODES .. . .  9.77E+01   9.77E+01   9.77E+01
+       2. FLOW THROUGH CAUCHY NODES . . . . .  0.00E+00   0.00E+00   0.00E+00
+       3. FLOW THROUGH NEUMANN NODES .  . . .  0.00E+00   0.00E+00   0.00E+00
+       4. FLOW THROUGH SEEPAGE NODES .. . . .  0.00E+00   0.00E+00   0.00E+00
+       5. FLOW THROUGH INFILTRATION NODES . . -4.97E+01  -4.97E+01  -4.97E+01
+       6. FLOW THROUGH UNSPECIFIED NODES  . .  0.00E+00   0.00E+00   0.00E+00
+       7. NET FLOW THROUGH ENTIRE BOUNDARY  .  4.80E+01   4.80E+01   4.80E+01
+       8. ARTIFICIAL SOURCES/SINKS . . . .     0.00E+00   0.00E+00   0.00E+00
+       9. INCREASE IN WATER CONTENT . . . . . -4.80E+01   1.18E+03   1.18E+03
+       A. FLOW THROUGH RIVER NODES  . . . . .  0.00E+00   0.00E+00   0.00E+00
+      *** NOTE: (+) = OUT FROM, (-) = INTO THE REGION. 
+
+
+
+ RAINFALL-SEEPAGE NODAL FLOWS (((L**3/T)/L**2).L).
+    -0.24836D+02   -0.24836D+02
+  VALUES OF NPCON
+    0    0
+  VALUES OF NPMIN
+   81   82
+  VALUES OF NPFLX
+    0    0
+ OUTPUT TABLE   5.. PRESSURE HEADS(L) AT TIME =  1.6297D+01
+  (DELT =  1.0000D+00),(BAND WIDTH =   7)  IT =   40
+
+                                 
+  NODE I      PRESSURE HEAD (L) OF NODES I,I+1,..,I+4
+
+      1    0.0000D+00    0.0000D+00   -4.0101D+00   -4.0101D+00   -7.9793D+00
+      6   -7.9793D+00   -1.1906D+01   -1.1906D+01   -1.5788D+01   -1.5788D+01
+     11   -1.9623D+01   -1.9623D+01   -2.3410D+01   -2.3410D+01   -2.7145D+01
+     16   -2.7145D+01   -3.0825D+01   -3.0825D+01   -3.4449D+01   -3.4449D+01
+     21   -3.8012D+01   -3.8012D+01   -4.1511D+01   -4.1511D+01   -4.4942D+01
+     26   -4.4942D+01   -4.8302D+01   -4.8302D+01   -5.1584D+01   -5.1584D+01
+     31   -5.4783D+01   -5.4783D+01   -5.7894D+01   -5.7894D+01   -6.0910D+01
+     36   -6.0910D+01   -6.3823D+01   -6.3823D+01   -6.6624D+01   -6.6624D+01
+     41   -6.9304D+01   -6.9304D+01   -7.1852D+01   -7.1852D+01   -7.4258D+01
+     46   -7.4258D+01   -7.6508D+01   -7.6508D+01   -7.8590D+01   -7.8590D+01
+     51   -8.0492D+01   -8.0492D+01   -8.2203D+01   -8.2203D+01   -8.3716D+01
+     56   -8.3716D+01   -8.5027D+01   -8.5027D+01   -8.6138D+01   -8.6138D+01
+     61   -8.7060D+01   -8.7060D+01   -8.7807D+01   -8.7807D+01   -8.8400D+01
+     66   -8.8400D+01   -8.8861D+01   -8.8861D+01   -8.9212D+01   -8.9212D+01
+     71   -8.9475D+01   -8.9475D+01   -8.9667D+01   -8.9667D+01   -8.9804D+01
+     76   -8.9804D+01   -8.9898D+01   -8.9898D+01   -8.9961D+01   -8.9961D+01
+     81   -9.0000D+01   -9.0000D+01
+  COUPLED ITERATION INFORMATION AT ITM =   41
+
+  TABLE OF SYSTEM-FLOW PARAMETERS  TABLE:    5.. AT TIME =  1.7297D+01
+  (DELT =  1.0000D+00) ITIM=  41
+
+      TYPE OF FLOW  RATE(L**3/T/L)   INC. FLOW(L**3/L)    TOTAL FLOW(L**3/L)
+       1. FLOW THROUGH DIRICHLET NODES .. . .  8.62E+01   8.62E+01   8.62E+01
+       2. FLOW THROUGH CAUCHY NODES . . . . .  0.00E+00   0.00E+00   0.00E+00
+       3. FLOW THROUGH NEUMANN NODES .  . . .  0.00E+00   0.00E+00   0.00E+00
+       4. FLOW THROUGH SEEPAGE NODES .. . . .  0.00E+00   0.00E+00   0.00E+00
+       5. FLOW THROUGH INFILTRATION NODES . . -4.98E+01  -4.98E+01  -4.98E+01
+       6. FLOW THROUGH UNSPECIFIED NODES  . .  0.00E+00   0.00E+00   0.00E+00
+       7. NET FLOW THROUGH ENTIRE BOUNDARY  .  3.64E+01   3.64E+01   3.64E+01
+       8. ARTIFICIAL SOURCES/SINKS . . . .     0.00E+00   0.00E+00   0.00E+00
+       9. INCREASE IN WATER CONTENT . . . . . -3.64E+01   1.14E+03   1.14E+03
+       A. FLOW THROUGH RIVER NODES  . . . . .  0.00E+00   0.00E+00   0.00E+00
+      *** NOTE: (+) = OUT FROM, (-) = INTO THE REGION. 
+
+
+
+ RAINFALL-SEEPAGE NODAL FLOWS (((L**3/T)/L**2).L).
+    -0.24913D+02   -0.24913D+02
+  VALUES OF NPCON
+    0    0
+  VALUES OF NPMIN
+   81   82
+  VALUES OF NPFLX
+    0    0
+ OUTPUT TABLE   6.. PRESSURE HEADS(L) AT TIME =  1.7297D+01
+  (DELT =  1.0000D+00),(BAND WIDTH =   7)  IT =   41
+
+                                 
+  NODE I      PRESSURE HEAD (L) OF NODES I,I+1,..,I+4
+
+      1    0.0000D+00    0.0000D+00   -4.1255D+00   -4.1255D+00   -8.2138D+00
+      6   -8.2138D+00   -1.2263D+01   -1.2263D+01   -1.6270D+01   -1.6270D+01
+     11   -2.0234D+01   -2.0234D+01   -2.4150D+01   -2.4150D+01   -2.8018D+01
+     16   -2.8018D+01   -3.1833D+01   -3.1833D+01   -3.5592D+01   -3.5592D+01
+     21   -3.9290D+01   -3.9290D+01   -4.2924D+01   -4.2924D+01   -4.6488D+01
+     26   -4.6488D+01   -4.9978D+01   -4.9978D+01   -5.3385D+01   -5.3385D+01
+     31   -5.6704D+01   -5.6704D+01   -5.9925D+01   -5.9925D+01   -6.3040D+01
+     36   -6.3040D+01   -6.6038D+01   -6.6038D+01   -6.8906D+01   -6.8906D+01
+     41   -7.1632D+01   -7.1632D+01   -7.4199D+01   -7.4199D+01   -7.6593D+01
+     46   -7.6593D+01   -7.8796D+01   -7.8796D+01   -8.0793D+01   -8.0793D+01
+     51   -8.2570D+01   -8.2570D+01   -8.4116D+01   -8.4116D+01   -8.5431D+01
+     56   -8.5431D+01   -8.6520D+01   -8.6520D+01   -8.7399D+01   -8.7399D+01
+     61   -8.8091D+01   -8.8091D+01   -8.8624D+01   -8.8624D+01   -8.9027D+01
+     66   -8.9027D+01   -8.9327D+01   -8.9327D+01   -8.9546D+01   -8.9546D+01
+     71   -8.9704D+01   -8.9704D+01   -8.9816D+01   -8.9816D+01   -8.9893D+01
+     76   -8.9893D+01   -8.9945D+01   -8.9945D+01   -8.9979D+01   -8.9979D+01
+     81   -9.0000D+01   -9.0000D+01
+  COUPLED ITERATION INFORMATION AT ITM =   42
+
+  TABLE OF SYSTEM-FLOW PARAMETERS  TABLE:    6.. AT TIME =  1.8297D+01
+  (DELT =  1.0000D+00) ITIM=  42
+
+      TYPE OF FLOW  RATE(L**3/T/L)   INC. FLOW(L**3/L)    TOTAL FLOW(L**3/L)
+       1. FLOW THROUGH DIRICHLET NODES .. . .  7.74E+01   7.74E+01   7.74E+01
+       2. FLOW THROUGH CAUCHY NODES . . . . .  0.00E+00   0.00E+00   0.00E+00
+       3. FLOW THROUGH NEUMANN NODES .  . . .  0.00E+00   0.00E+00   0.00E+00
+       4. FLOW THROUGH SEEPAGE NODES .. . . .  0.00E+00   0.00E+00   0.00E+00
+       5. FLOW THROUGH INFILTRATION NODES . . -4.99E+01  -4.99E+01  -4.99E+01
+       6. FLOW THROUGH UNSPECIFIED NODES  . .  0.00E+00   0.00E+00   0.00E+00
+       7. NET FLOW THROUGH ENTIRE BOUNDARY  .  2.75E+01   2.75E+01   2.75E+01
+       8. ARTIFICIAL SOURCES/SINKS . . . .     0.00E+00   0.00E+00   0.00E+00
+       9. INCREASE IN WATER CONTENT . . . . . -2.75E+01   1.12E+03   1.12E+03
+       A. FLOW THROUGH RIVER NODES  . . . . .  0.00E+00   0.00E+00   0.00E+00
+      *** NOTE: (+) = OUT FROM, (-) = INTO THE REGION. 
+
+
+
+ RAINFALL-SEEPAGE NODAL FLOWS (((L**3/T)/L**2).L).
+    -0.24952D+02   -0.24952D+02
+  VALUES OF NPCON
+    0    0
+  VALUES OF NPMIN
+   81   82
+  VALUES OF NPFLX
+    0    0
+ OUTPUT TABLE   7.. PRESSURE HEADS(L) AT TIME =  1.8297D+01
+  (DELT =  1.0000D+00),(BAND WIDTH =   7)  IT =   42
+
+                                 
+  NODE I      PRESSURE HEAD (L) OF NODES I,I+1,..,I+4
+
+      1    0.0000D+00    0.0000D+00   -4.2150D+00   -4.2150D+00   -8.3957D+00
+      6   -8.3957D+00   -1.2540D+01   -1.2540D+01   -1.6645D+01   -1.6645D+01
+     11   -2.0709D+01   -2.0709D+01   -2.4728D+01   -2.4728D+01   -2.8700D+01
+     16   -2.8700D+01   -3.2621D+01   -3.2621D+01   -3.6487D+01   -3.6487D+01
+     21   -4.0293D+01   -4.0293D+01   -4.4035D+01   -4.4035D+01   -4.7706D+01
+     26   -4.7706D+01   -5.1299D+01   -5.1299D+01   -5.4807D+01   -5.4807D+01
+     31   -5.8222D+01   -5.8222D+01   -6.1532D+01   -6.1532D+01   -6.4725D+01
+     36   -6.4725D+01   -6.7789D+01   -6.7789D+01   -7.0708D+01   -7.0708D+01
+     41   -7.3463D+01   -7.3463D+01   -7.6036D+01   -7.6036D+01   -7.8406D+01
+     46   -7.8406D+01   -8.0552D+01   -8.0552D+01   -8.2455D+01   -8.2455D+01
+     51   -8.4104D+01   -8.4104D+01   -8.5491D+01   -8.5491D+01   -8.6625D+01
+     56   -8.6625D+01   -8.7523D+01   -8.7523D+01   -8.8214D+01   -8.8214D+01
+     61   -8.8733D+01   -8.8733D+01   -8.9115D+01   -8.9115D+01   -8.9392D+01
+     66   -8.9392D+01   -8.9590D+01   -8.9590D+01   -8.9730D+01   -8.9730D+01
+     71   -8.9828D+01   -8.9828D+01   -8.9895D+01   -8.9895D+01   -8.9940D+01
+     76   -8.9940D+01   -8.9970D+01   -8.9970D+01   -8.9988D+01   -8.9988D+01
+     81   -9.0000D+01   -9.0000D+01
+  COUPLED ITERATION INFORMATION AT ITM =   43
+
+  TABLE OF SYSTEM-FLOW PARAMETERS  TABLE:    7.. AT TIME =  1.9297D+01
+  (DELT =  1.0000D+00) ITIM=  43
+
+      TYPE OF FLOW  RATE(L**3/T/L)   INC. FLOW(L**3/L)    TOTAL FLOW(L**3/L)
+       1. FLOW THROUGH DIRICHLET NODES .. . .  7.06E+01   7.06E+01   7.06E+01
+       2. FLOW THROUGH CAUCHY NODES . . . . .  0.00E+00   0.00E+00   0.00E+00
+       3. FLOW THROUGH NEUMANN NODES .  . . .  0.00E+00   0.00E+00   0.00E+00
+       4. FLOW THROUGH SEEPAGE NODES .. . . .  0.00E+00   0.00E+00   0.00E+00
+       5. FLOW THROUGH INFILTRATION NODES . . -4.99E+01  -4.99E+01  -4.99E+01
+       6. FLOW THROUGH UNSPECIFIED NODES  . .  0.00E+00   0.00E+00   0.00E+00
+       7. NET FLOW THROUGH ENTIRE BOUNDARY  .  2.07E+01   2.07E+01   2.07E+01
+       8. ARTIFICIAL SOURCES/SINKS . . . .     0.00E+00   0.00E+00   0.00E+00
+       9. INCREASE IN WATER CONTENT . . . . . -2.07E+01   1.10E+03   1.10E+03
+       A. FLOW THROUGH RIVER NODES  . . . . .  0.00E+00   0.00E+00   0.00E+00
+      *** NOTE: (+) = OUT FROM, (-) = INTO THE REGION. 
+
+
+
+ RAINFALL-SEEPAGE NODAL FLOWS (((L**3/T)/L**2).L).
+    -0.24973D+02   -0.24973D+02
+  VALUES OF NPCON
+    0    0
+  VALUES OF NPMIN
+   81   82
+  VALUES OF NPFLX
+    0    0
+ OUTPUT TABLE   8.. PRESSURE HEADS(L) AT TIME =  1.9297D+01
+  (DELT =  1.0000D+00),(BAND WIDTH =   7)  IT =   43
+
+                                 
+  NODE I      PRESSURE HEAD (L) OF NODES I,I+1,..,I+4
+
+      1    0.0000D+00    0.0000D+00   -4.2837D+00   -4.2837D+00   -8.5353D+00
+      6   -8.5353D+00   -1.2753D+01   -1.2753D+01   -1.6933D+01   -1.6933D+01
+     11   -2.1075D+01   -2.1075D+01   -2.5174D+01   -2.5174D+01   -2.9227D+01
+     16   -2.9227D+01   -3.3230D+01   -3.3230D+01   -3.7180D+01   -3.7180D+01
+     21   -4.1071D+01   -4.1071D+01   -4.4897D+01   -4.4897D+01   -4.8651D+01
+     26   -4.8651D+01   -5.2327D+01   -5.2327D+01   -5.5915D+01   -5.5915D+01
+     31   -5.9405D+01   -5.9405D+01   -6.2784D+01   -6.2784D+01   -6.6040D+01
+     36   -6.6040D+01   -6.9154D+01   -6.9154D+01   -7.2109D+01   -7.2109D+01
+     41   -7.4883D+01   -7.4883D+01   -7.7452D+01   -7.7452D+01   -7.9791D+01
+     46   -7.9791D+01   -8.1877D+01   -8.1877D+01   -8.3689D+01   -8.3689D+01
+     51   -8.5217D+01   -8.5217D+01   -8.6462D+01   -8.6462D+01   -8.7440D+01
+     56   -8.7440D+01   -8.8183D+01   -8.8183D+01   -8.8731D+01   -8.8731D+01
+     61   -8.9125D+01   -8.9125D+01   -8.9405D+01   -8.9405D+01   -8.9600D+01
+     66   -8.9600D+01   -8.9736D+01   -8.9736D+01   -8.9829D+01   -8.9829D+01
+     71   -8.9893D+01   -8.9893D+01   -8.9936D+01   -8.9936D+01   -8.9964D+01
+     76   -8.9964D+01   -8.9982D+01   -8.9982D+01   -8.9994D+01   -8.9994D+01
+     81   -9.0000D+01   -9.0000D+01
+  COUPLED ITERATION INFORMATION AT ITM =   44
+
+  TABLE OF SYSTEM-FLOW PARAMETERS  TABLE:    8.. AT TIME =  2.0000D+01
+  (DELT =  7.0347D-01) ITIM=  44
+
+      TYPE OF FLOW  RATE(L**3/T/L)   INC. FLOW(L**3/L)    TOTAL FLOW(L**3/L)
+       1. FLOW THROUGH DIRICHLET NODES .. . .  6.67E+01   4.69E+01   4.69E+01
+       2. FLOW THROUGH CAUCHY NODES . . . . .  0.00E+00   0.00E+00   0.00E+00
+       3. FLOW THROUGH NEUMANN NODES .  . . .  0.00E+00   0.00E+00   0.00E+00
+       4. FLOW THROUGH SEEPAGE NODES .. . . .  0.00E+00   0.00E+00   0.00E+00
+       5. FLOW THROUGH INFILTRATION NODES . . -5.00E+01  -3.51E+01  -3.51E+01
+       6. FLOW THROUGH UNSPECIFIED NODES  . . -3.55E-15  -3.55E-15  -3.55E-15
+       7. NET FLOW THROUGH ENTIRE BOUNDARY  .  1.67E+01   1.18E+01   1.18E+01
+       8. ARTIFICIAL SOURCES/SINKS . . . .     0.00E+00   0.00E+00   0.00E+00
+       9. INCREASE IN WATER CONTENT . . . . . -1.67E+01   1.09E+03   1.09E+03
+       A. FLOW THROUGH RIVER NODES  . . . . .  0.00E+00   0.00E+00   0.00E+00
+      *** NOTE: (+) = OUT FROM, (-) = INTO THE REGION. 
+
+
+
+ RAINFALL-SEEPAGE NODAL FLOWS (((L**3/T)/L**2).L).
+    -0.24979D+02   -0.24979D+02
+  VALUES OF NPCON
+    0    0
+  VALUES OF NPMIN
+   81   82
+  VALUES OF NPFLX
+    0    0
+ OUTPUT TABLE   9.. PRESSURE HEADS(L) AT TIME =  2.0000D+01
+  (DELT =  7.0347D-01),(BAND WIDTH =   7)  IT =   44
+
+                                 
+  NODE I      PRESSURE HEAD (L) OF NODES I,I+1,..,I+4
+
+      1    0.0000D+00    0.0000D+00   -4.3233D+00   -4.3233D+00   -8.6160D+00
+      6   -8.6160D+00   -1.2876D+01   -1.2876D+01   -1.7100D+01   -1.7100D+01
+     11   -2.1286D+01   -2.1286D+01   -2.5432D+01   -2.5432D+01   -2.9532D+01
+     16   -2.9532D+01   -3.3584D+01   -3.3584D+01   -3.7582D+01   -3.7582D+01
+     21   -4.1522D+01   -4.1522D+01   -4.5397D+01   -4.5397D+01   -4.9201D+01
+     26   -4.9201D+01   -5.2924D+01   -5.2924D+01   -5.6559D+01   -5.6559D+01
+     31   -6.0093D+01   -6.0093D+01   -6.3513D+01   -6.3513D+01   -6.6804D+01
+     36   -6.6804D+01   -6.9947D+01   -6.9947D+01   -7.2921D+01   -7.2921D+01
+     41   -7.5702D+01   -7.5702D+01   -7.8265D+01   -7.8265D+01   -8.0581D+01
+     46   -8.0581D+01   -8.2625D+01   -8.2625D+01   -8.4376D+01   -8.4376D+01
+     51   -8.5827D+01   -8.5827D+01   -8.6983D+01   -8.6983D+01   -8.7869D+01
+     56   -8.7869D+01   -8.8523D+01   -8.8523D+01   -8.8992D+01   -8.8992D+01
+     61   -8.9320D+01   -8.9320D+01   -8.9546D+01   -8.9546D+01   -8.9700D+01
+     66   -8.9700D+01   -8.9804D+01   -8.9804D+01   -8.9874D+01   -8.9874D+01
+     71   -8.9922D+01   -8.9922D+01   -8.9953D+01   -8.9953D+01   -8.9974D+01
+     76   -8.9974D+01   -8.9987D+01   -8.9987D+01   -8.9995D+01   -8.9995D+01
+     81   -9.0000D+01   -9.0000D+01
+ OUTPUT TABLE  10. TOTAL HEADS(L) AT TIME =  2.0000D+01
+  (DELT =  7.0347D-01),(BAND WIDTH =   7)  IT =   44
+
+                                 
+  NODE I      TOTAL HEAD (L) OF NODES I,I+1,...,I+4
+
+      1    0.0000D+00    0.0000D+00    6.7667D-01    6.7667D-01    1.3840D+00
+      6    1.3840D+00    2.1243D+00    2.1243D+00    2.8999D+00    2.8999D+00
+     11    3.7136D+00    3.7136D+00    4.5685D+00    4.5685D+00    5.4681D+00
+     16    5.4681D+00    6.4165D+00    6.4165D+00    7.4181D+00    7.4181D+00
+     21    8.4783D+00    8.4783D+00    9.6030D+00    9.6030D+00    1.0799D+01
+     26    1.0799D+01    1.2076D+01    1.2076D+01    1.3441D+01    1.3441D+01
+     31    1.4907D+01    1.4907D+01    1.6487D+01    1.6487D+01    1.8196D+01
+     36    1.8196D+01    2.0053D+01    2.0053D+01    2.2079D+01    2.2079D+01
+     41    2.4298D+01    2.4298D+01    2.6735D+01    2.6735D+01    2.9419D+01
+     46    2.9419D+01    3.2375D+01    3.2375D+01    3.5624D+01    3.5624D+01
+     51    3.9173D+01    3.9173D+01    4.3017D+01    4.3017D+01    4.7131D+01
+     56    4.7131D+01    5.1477D+01    5.1477D+01    5.6008D+01    5.6008D+01
+     61    6.0680D+01    6.0680D+01    6.5454D+01    6.5454D+01    7.0300D+01
+     66    7.0300D+01    7.5196D+01    7.5196D+01    8.0126D+01    8.0126D+01
+     71    8.5078D+01    8.5078D+01    9.0047D+01    9.0047D+01    9.5026D+01
+     76    9.5026D+01    1.0001D+02    1.0001D+02    1.0500D+02    1.0500D+02
+     81    1.1000D+02    1.1000D+02
+ OUTPUT TABLE  11. WATER CONTENT(L**3/L**3) AT TIME =  2.0000D+01
+  (DELT =  7.0347D-01),(BAND WIDTH =   7)  IT =   44
+
+                                 
+               GAUSSIAN POINT                         GAUSSIAN POINT
+   ELM     1       2       3       4      ELM     1       2       3       4    
+   -----------------------------------    -----------------------------------  
+
+     1 0.29726 0.29726 0.28977 0.28977      2 0.28431 0.28431 0.27687 0.27687
+     3 0.27145 0.27145 0.26407 0.26407      4 0.25869 0.25869 0.25138 0.25138
+     5 0.24605 0.24605 0.23879 0.23879      6 0.23351 0.23351 0.22633 0.22633
+     7 0.22111 0.22111 0.21400 0.21400      8 0.20884 0.20884 0.20182 0.20182
+     9 0.19671 0.19671 0.18979 0.18979     10 0.18476 0.18476 0.17793 0.17793
+    11 0.17298 0.17298 0.16627 0.16627     12 0.16140 0.16140 0.15481 0.15481
+    13 0.15004 0.15004 0.14359 0.14359     14 0.13892 0.13892 0.13263 0.13263
+    15 0.12808 0.12808 0.12196 0.12196     16 0.11755 0.11755 0.11163 0.11163
+    17 0.10738 0.10738 0.10168 0.10168     18 0.09760 0.09760 0.09215 0.09215
+    19 0.08827 0.08827 0.08312 0.08312     20 0.07947 0.07947 0.07466 0.07466
+    21 0.07127 0.07127 0.06683 0.06683     22 0.06374 0.06374 0.05973 0.05973
+    23 0.05696 0.05696 0.05342 0.05342     24 0.05102 0.05102 0.04798 0.04798
+    25 0.04595 0.04595 0.04344 0.04344     26 0.04179 0.04179 0.03979 0.03979
+    27 0.03849 0.03849 0.03696 0.03696     28 0.03598 0.03598 0.03484 0.03484
+    29 0.03413 0.03413 0.03332 0.03332     30 0.03282 0.03282 0.03225 0.03225
+    31 0.03190 0.03190 0.03151 0.03151     32 0.03126 0.03126 0.03100 0.03100
+    33 0.03083 0.03083 0.03065 0.03065     34 0.03054 0.03054 0.03042 0.03042
+    35 0.03035 0.03035 0.03027 0.03027     36 0.03022 0.03022 0.03016 0.03016
+    37 0.03013 0.03013 0.03009 0.03009     38 0.03007 0.03007 0.03005 0.03005
+    39 0.03003 0.03003 0.03002 0.03002     40 0.03001 0.03001 0.03000 0.03000
+ OUTPUT TABLE  12.. DARCY VELOCITIES (L/T) AT TIME =  2.0000D+01
+  (DELT =  7.0347D-01),(BAND WIDTH =   7)  IT =   44
+
+                                 
+  NODE     VX          VZ         NODE     VX          VZ        
+  ---- ----------- -----------    ---- ----------- -----------   
+
+     1  0.0000D+00 -1.3338D+00       2  0.0000D+00 -1.3338D+00
+     3  0.0000D+00 -1.3238D+00       4  0.0000D+00 -1.3238D+00
+     5  0.0000D+00 -1.3225D+00       6  0.0000D+00 -1.3225D+00
+     7  0.0000D+00 -1.3203D+00       8  0.0000D+00 -1.3203D+00
+     9  0.0000D+00 -1.3171D+00      10  0.0000D+00 -1.3171D+00
+    11  0.0000D+00 -1.3130D+00      12  0.0000D+00 -1.3130D+00
+    13  0.0000D+00 -1.3079D+00      14  0.0000D+00 -1.3079D+00
+    15  0.0000D+00 -1.3017D+00      16  0.0000D+00 -1.3017D+00
+    17  0.0000D+00 -1.2946D+00      18  0.0000D+00 -1.2946D+00
+    19  0.0000D+00 -1.2864D+00      20  0.0000D+00 -1.2864D+00
+    21  0.0000D+00 -1.2771D+00      22  0.0000D+00 -1.2771D+00
+    23  0.0000D+00 -1.2667D+00      24  0.0000D+00 -1.2667D+00
+    25  0.0000D+00 -1.2553D+00      26  0.0000D+00 -1.2553D+00
+    27  0.0000D+00 -1.2429D+00      28  0.0000D+00 -1.2429D+00
+    29  0.0000D+00 -1.2294D+00      30  0.0000D+00 -1.2294D+00
+    31  0.0000D+00 -1.2149D+00      32  0.0000D+00 -1.2149D+00
+    33  0.0000D+00 -1.1994D+00      34  0.0000D+00 -1.1994D+00
+    35  0.0000D+00 -1.1832D+00      36  0.0000D+00 -1.1832D+00
+    37  0.0000D+00 -1.1662D+00      38  0.0000D+00 -1.1662D+00
+    39  0.0000D+00 -1.1488D+00      40  0.0000D+00 -1.1488D+00
+    41  0.0000D+00 -1.1310D+00      42  0.0000D+00 -1.1310D+00
+    43  0.0000D+00 -1.1133D+00      44  0.0000D+00 -1.1133D+00
+    45  0.0000D+00 -1.0959D+00      46  0.0000D+00 -1.0959D+00
+    47  0.0000D+00 -1.0793D+00      48  0.0000D+00 -1.0793D+00
+    49  0.0000D+00 -1.0639D+00      50  0.0000D+00 -1.0639D+00
+    51  0.0000D+00 -1.0503D+00      52  0.0000D+00 -1.0503D+00
+    53  0.0000D+00 -1.0386D+00      54  0.0000D+00 -1.0386D+00
+    55  0.0000D+00 -1.0289D+00      56  0.0000D+00 -1.0289D+00
+    57  0.0000D+00 -1.0211D+00      58  0.0000D+00 -1.0211D+00
+    59  0.0000D+00 -1.0150D+00      60  0.0000D+00 -1.0150D+00
+    61  0.0000D+00 -1.0104D+00      62  0.0000D+00 -1.0104D+00
+    63  0.0000D+00 -1.0068D+00      64  0.0000D+00 -1.0068D+00
+    65  0.0000D+00 -1.0042D+00      66  0.0000D+00 -1.0042D+00
+    67  0.0000D+00 -1.0023D+00      68  0.0000D+00 -1.0023D+00
+    69  0.0000D+00 -1.0010D+00      70  0.0000D+00 -1.0010D+00
+    71  0.0000D+00 -1.0002D+00      72  0.0000D+00 -1.0002D+00
+    73  0.0000D+00 -9.9966D-01      74  0.0000D+00 -9.9966D-01
+    75  0.0000D+00 -9.9938D-01      76  0.0000D+00 -9.9938D-01
+    77  0.0000D+00 -9.9925D-01      78  0.0000D+00 -9.9925D-01
+    79  0.0000D+00 -9.9923D-01      80  0.0000D+00 -9.9923D-01
+    81  0.0000D+00 -9.9918D-01      82  0.0000D+00 -9.9918D-01

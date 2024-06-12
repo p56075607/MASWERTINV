@@ -1,0 +1,7 @@
+EX01.mxa
+EX01.dm
+EX01.inp
+EX01GM_LINR.inp
+EX01.out
+EX01GM_LINR.out
+EX01.WARN
