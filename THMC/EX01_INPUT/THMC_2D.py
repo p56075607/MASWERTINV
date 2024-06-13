@@ -1,5 +1,5 @@
 # %%
-from run_twenty_steady import run_twenty_steady
+from THMC.EX01_INPUT.run_five_steady import run_twenty_steady
 import sys
 sys.path.append(r'E:\VM\Win7_64bit_EarthImagerVM 1\Share_Folder\R2MS_TARI\data\external\WF')
 from swrc_func_2 import Campbell

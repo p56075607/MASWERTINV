@@ -214,15 +214,15 @@ def Forward_inversion(csv_file_name,geo=geo,plot=True):
 
     return mgr, mgr_normal, data, resistivity,df
 
-    # 定義 Van Genuchten 模型的反函數
+    # 定義 Van Genuchten 模???漱洠蝻?
 
 def van_genuchten_inv(theta, theta_r, theta_s, alpha, n):
     if theta == theta_s:
-        return 0  # 飽和狀態下的壓力水頭設置為零
+        return 0  # 飽和??態?U?瑰ㄓO?蘉Y設置?偎s
     m = 1 - 1/n
     func = lambda h: theta_r + (theta_s - theta_r) / (1 + (alpha * np.abs(h))**n)**m - theta
     
-    # 使用多個初始猜測值來提高穩健性
+    # 使用?h?茠鴝l猜測?�來提�?穩健性
     initial_guesses = [-1, -10, -100, -1000]
     for h_guess in initial_guesses:
         sol = root(func, h_guess)
@@ -239,19 +239,19 @@ def convert_resistivity_to_Hp(df, resistivity, mesh, interface_coords):
     line = LineString(interface_coords)
     SWC = np.zeros(len(df))
     Hp = np.zeros(len(df))
-    # 檢查每個點
+    # 檢查每?蚋I
     for i, point in enumerate(df[['X', 'Y']].to_numpy()):
         point = Point(point)
         distance = line.distance(point)
-        # 判斷點相對於折線的位置
+        # ?P斷點?蛫鴭顜朣u?漲鼽m
         if point.y > line.interpolate(line.project(point)).y:
             n = 1.83
             cFluid = 1/(0.57*106)
             SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
 
-            # [Soil] Van Genuchten 模型參數
-            theta_r = 0.034  # 殘餘含水量
-            theta_s = 0.46  # 飽和含水量
+            # [Soil] Van Genuchten 模??參數
+            theta_r = 0.034  # 殘餘?t?艨q
+            theta_s = 0.46  # 飽和?t?艨q
             alpha = 1.6     # 經驗參數
             n = 1.37       # 經驗參數
 
@@ -262,9 +262,9 @@ def convert_resistivity_to_Hp(df, resistivity, mesh, interface_coords):
             cFluid = 1/(0.58*75)
             SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
 
-            # [Rock] Van Genuchten 模型參數
-            theta_r = 0.031  # 殘餘含水量
-            theta_s = 0.467  # 飽和含水量
+            # [Rock] Van Genuchten 模??參數
+            theta_r = 0.031  # 殘餘?t?艨q
+            theta_s = 0.467  # 飽和?t?艨q
             alpha = 3.64     # 經驗參數
             n = 1.121       # 經驗參數
 
@@ -325,7 +325,7 @@ grid = pg.createGrid(x=mesh_x,y=mesh_y )
 rho_grid = pg.interpolate(mesh, resistivity, grid.cellCenters())
 fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(10, 10),
                                                          constrained_layout=True,
-                                                         gri dspec_kw={'wspace': 0.2})
+                                                         gridspec_kw={'wspace': 0.2})
 ax2.axis('off')
 # Subplot 1:Original resistivity model
 pg.viewer.showMesh(mesh, resistivity,ax=ax1, **kw)
