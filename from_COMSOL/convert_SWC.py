@@ -294,13 +294,144 @@ for i,csv_file_name in enumerate(csvfiles):
     }
     print('RRMSE of SWC:', Layers_water_content[i]['RRMSE'])
     print('RRMSE of SWC normal:', Layers_water_content[i]['RRMSE_normal'])
+    plot_compare = True
+    if plot_compare:
+        # Comparesion of the results by the residual profile
+        # Re-interpolate the grid
+        left = 0
+        right = 30
+        depth = 5
+
+        mesh_x = np.linspace(left,right,300)
+        mesh_y = np.linspace(-depth,20,180)
+        grid = pg.createGrid(x=mesh_x,y=mesh_y )
+        kw = dict(cMin=min(resistivity), cMax=max(resistivity), logScale=True, cMap='jet',
+                            xlabel='X (m)', ylabel='Y (m)', 
+                            label=pg.unit('res'), orientation='vertical')
+        # Distinguish the region of the mesh and insert the value of rhomap
+        rho_grid = pg.interpolate(mesh, resistivity, grid.cellCenters())
+        fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(10, 10),
+                                                                constrained_layout=True,
+                                                                gridspec_kw={'wspace': 0.2})
+        ax2.axis('off')
+        # Subplot 1:Original resistivity model
+        pg.viewer.showMesh(mesh, resistivity,ax=ax1, **kw)
+        ax1.set_title('Original resistivity model profile',fontweight="bold", size=16)
+        ax1.set_xlim([0, 30])
+        ax1.set_ylim([5,20])
+        def plot_resistivity(ax, mgr, data, title, **kw):
+            pg.viewer.showMesh(mgr.paraDomain, mgr.model,coverage=mgr.coverage(),#grid,data=rho_normal_grid,
+                            ax=ax, **kw)
+            ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
+            ax.set_title(title,fontweight="bold", size=16)
+            ax.set_xlim([0, 30])
+            ax.set_ylim([5,20])
+            ax.text(left+1,6,'RRMS: {:.2f}%'.format(
+                    mgr.inv.relrms())
+                        ,fontweight="bold", size=16)
+        # Subplot 3:normal grid 
+        rho_normal_grid = pg.interpolate(mgr_normal.paraDomain, mgr_normal.model, grid.cellCenters())
+        plot_resistivity(ax=ax3, mgr=mgr_normal, data=data, title='Normal mesh inverted resistivity profile', **kw)
+        ax3.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'--k')
+        # Subplot 5:structured constrained grid 
+        rho_layer_grid = pg.interpolate(mgr.paraDomain, mgr.model, grid.cellCenters())
+        plot_resistivity(ax=ax5, mgr=mgr, data=data, title='Structured constrained inverted resistivity profile', **kw)
+        ax5.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'-k')
+        # Plot the residual profile
+        # Calculate the resistivity relative difference
+        kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
+                        label='Relative resistivity difference \n(%)',
+                        xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
+        # Subplot 4:Normal mesh resistivity residual
+        def plot_residual_contour(ax, grid, data, title,mesh_x,mesh_y, **kw_compare):
+            class StretchOutNormalize(plt.Normalize):
+                def __init__(self, vmin=None, vmax=None, low=None, up=None, clip=False):
+                    self.low = low
+                    self.up = up
+                    plt.Normalize.__init__(self, vmin, vmax, clip)
+                def __call__(self, value, clip=None):
+                    x, y = [self.vmin, self.low, self.up, self.vmax], [0, 0.5-1e-9, 0.5+1e-9, 1]
+                    return np.ma.masked_array(np.interp(value, x, y))
+            clim = [-50, 50]
+            midnorm=StretchOutNormalize(vmin=clim[0], vmax=clim[1], low=-10, up=10)
+            X,Y = np.meshgrid(mesh_x,mesh_y)
+            diff_pos = pg.interpolate(grid, data, grid.positions())
+            mesh = np.reshape(diff_pos,(len(mesh_y),len(mesh_x)))
+            ax.contourf(X,Y,mesh,
+                        levels = 128,
+                        cmap='bwr',
+                        norm=midnorm)
+            ax.set_title(title, fontweight="bold", size=16)
+            ax.set_xlabel('X (m)')
+            ax.set_ylabel('Y (m)')
+
+            ax.set_xlim([0, 30])
+            ax.set_ylim([5,20])
+            ax.set_aspect('equal')
+            divider = make_axes_locatable(ax)
+            cbaxes = divider.append_axes("right", size="4%", pad=.15)
+            m = plt.cm.ScalarMappable(cmap=plt.cm.bwr,norm=midnorm)
+            m.set_array(mesh)
+            m.set_clim(clim[0],clim[1])
+            cb = plt.colorbar(m,
+                            boundaries=np.linspace(clim[0],clim[1], 128),
+                            cax=cbaxes)
+            cb_ytick = np.linspace(clim[0],clim[1],5)
+            cb.ax.set_yticks(cb_ytick)
+            cb.ax.set_yticklabels(['{:.0f}'.format(x) for x in cb_ytick])
+            cb.ax.set_ylabel('Relative resistivity difference\n(%)')
+        residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
+        # plot_residual(ax=ax4, grid=grid, data=residual_normal_grid, title='Normal mesh resistivity difference profile', **kw_compare)
+        plot_residual_contour(ax=ax4, grid=grid, data=residual_normal_grid, title='Normal mesh resistivity difference profile',mesh_x=mesh_x,mesh_y=mesh_y, **kw_compare)
+        ax4.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'--k')
+        # Subplot 6:Layered mesh resistivity residual
+        residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
+        # plot_residual(ax=ax6, grid=grid, data=residual_layer_grid, title='Structured constrained resistivity difference profile', **kw_compare)
+        plot_residual_contour(ax=ax6, grid=grid, data=residual_layer_grid, title='Structured constrained resistivity difference profile',mesh_x=mesh_x,mesh_y=mesh_y, **kw_compare)
+        ax6.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'-k')
+
+        fig.savefig(join('results',csv_file_name[-7:-4]+'Compare Plot.png'), dpi=300, bbox_inches='tight', transparent=False)
+
 # %%
+Layers_water_content_partial = {}
+for j,csv_file_name in enumerate(csvfiles):
+    df = import_COMSOL_csv(csv_name = join(csv_path,csv_file_name),plot=False,style='scatter')
+    interface_coords = np.array(geo[1:-1])
+    interface_coords[:,1]= interface_coords[:,1]-5
+    line = LineString(interface_coords)
+    SWC_partial = []
+    SWC_normal_partial = []
+    SWC_real_partial = []
+    xy = []
+
+    # 檢查每個點
+    for i, point in enumerate(df[['X', 'Y']].to_numpy()):
+        point = Point(point)
+        distance = line.distance(point)
+        # 判斷點相對於折線的位置
+        if (point.y > line.interpolate(line.project(point)).y) and (point.x>6) and (point.x<24):
+            SWC_partial.append(Layers_water_content[j]['SWC'][i])
+            SWC_normal_partial.append(Layers_water_content[j]['SWC_normal'][i])
+            SWC_real_partial.append(df['theta'].to_numpy()[i])
+            xy.append(df[['X', 'Y']].to_numpy()[i])
+            
+        
+    RRMSE = lambda x, y: np.sqrt(np.sum(((x - y)/y)**2) / len(x)) * 100
+    #RRMSE = lambda x, y: 1 - np.sum((x - y)**2) / np.sum((y - np.mean(y))**2) 
+    Layers_water_content_partial[j] = {
+        'SWC_partial': SWC_partial,
+        'SWC_normal_partial': SWC_normal_partial,
+        'RRMSE': RRMSE(np.array(SWC_partial), np.array(SWC_real_partial)),
+        'RRMSE_normal': RRMSE(np.array(SWC_normal_partial), np.array(SWC_real_partial))
+    }
+
+
 rain_rate = 365 # mm/day
 # rain for 10 days
 cumulative_rain = [rain_rate * i for i in range(1, 12)]
-RRMSE_all = [Layers_water_content[key]['RRMSE'] for key in Layers_water_content]
+RRMSE_all = [Layers_water_content_partial[key]['RRMSE'] for key in Layers_water_content_partial]
 RRMSE_all.append(RRMSE_all.pop(1))
-RRMSE_normal_all = [Layers_water_content[key]['RRMSE_normal'] for key in Layers_water_content]
+RRMSE_normal_all = [Layers_water_content_partial[key]['RRMSE_normal'] for key in Layers_water_content_partial]
 RRMSE_normal_all.append(RRMSE_normal_all.pop(1))
 fig, ax = plt.subplots(figsize=(6.4, 4.8))
 ax.plot(cumulative_rain,RRMSE_all,'-bo', label='Structured constrained mesh')
@@ -311,115 +442,24 @@ ax.set_title('RRMSE between True SWC and Inverted SWC')
 ax.legend()
 fig.savefig(join('results', 'RRMSE_SWC.png'), dpi=300, bbox_inches='tight')
 # %%
-# Comparesion of the results by the residual profile
-# Re-interpolate the grid
-left = 0
-right = 30
-depth = 5
 
-mesh_x = np.linspace(left,right,300)
-mesh_y = np.linspace(-depth,20,180)
-grid = pg.createGrid(x=mesh_x,y=mesh_y )
-
-# Distinguish the region of the mesh and insert the value of rhomap
-rho_grid = pg.interpolate(mesh, resistivity, grid.cellCenters())
-fig, ((ax1, ax2), (ax3, ax4), (ax5, ax6)) = plt.subplots(3,2, figsize=(10, 10),
-                                                         constrained_layout=True,
-                                                         gri dspec_kw={'wspace': 0.2})
-ax2.axis('off')
-# Subplot 1:Original resistivity model
-pg.viewer.showMesh(mesh, resistivity,ax=ax1, **kw)
-ax1.set_title('Original resistivity model profile',fontweight="bold", size=16)
-ax1.set_xlim([0, 30])
-ax1.set_ylim([5,20])
-def plot_resistivity(ax, mgr, data, title, **kw):
-    pg.viewer.showMesh(mgr.paraDomain, mgr.model,coverage=mgr.coverage(),#grid,data=rho_normal_grid,
-                    ax=ax, **kw)
-    ax.plot(np.array(pg.x(data)), np.array(pg.z(data)),'ko')
-    ax.set_title(title,fontweight="bold", size=16)
-    ax.set_xlim([0, 30])
-    ax.set_ylim([5,20])
-    ax.text(left+1,6,'RRMS: {:.2f}%'.format(
-            mgr.inv.relrms())
-                ,fontweight="bold", size=16)
-# Subplot 3:normal grid 
-rho_normal_grid = pg.interpolate(mgr_normal.paraDomain, mgr_normal.model, grid.cellCenters())
-plot_resistivity(ax=ax3, mgr=mgr_normal, data=data, title='Normal mesh inverted resistivity profile', **kw)
-ax3.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'--k')
-# Subplot 5:structured constrained grid 
-rho_layer_grid = pg.interpolate(mgr.paraDomain, mgr.model, grid.cellCenters())
-plot_resistivity(ax=ax5, mgr=mgr, data=data, title='Structured constrained inverted resistivity profile', **kw)
-ax5.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'-k')
-# Plot the residual profile
-# Calculate the resistivity relative difference
-kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
-                label='Relative resistivity difference \n(%)',
-                xlabel='Distance (m)', ylabel='Depth (m)', orientation='vertical')
-# Subplot 4:Normal mesh resistivity residual
-def plot_residual_contour(ax, grid, data, title,mesh_x,mesh_y, **kw_compare):
-    class StretchOutNormalize(plt.Normalize):
-        def __init__(self, vmin=None, vmax=None, low=None, up=None, clip=False):
-            self.low = low
-            self.up = up
-            plt.Normalize.__init__(self, vmin, vmax, clip)
-        def __call__(self, value, clip=None):
-            x, y = [self.vmin, self.low, self.up, self.vmax], [0, 0.5-1e-9, 0.5+1e-9, 1]
-            return np.ma.masked_array(np.interp(value, x, y))
-    clim = [-50, 50]
-    midnorm=StretchOutNormalize(vmin=clim[0], vmax=clim[1], low=-10, up=10)
-    X,Y = np.meshgrid(mesh_x,mesh_y)
-    diff_pos = pg.interpolate(grid, data, grid.positions())
-    mesh = np.reshape(diff_pos,(len(mesh_y),len(mesh_x)))
-    ax.contourf(X,Y,mesh,
-                levels = 128,
-                cmap='bwr',
-                norm=midnorm)
-    ax.set_title(title, fontweight="bold", size=16)
-    ax.set_xlabel('X (m)')
-    ax.set_ylabel('Y (m)')
-
-    ax.set_xlim([0, 30])
-    ax.set_ylim([5,20])
-    ax.set_aspect('equal')
-    divider = make_axes_locatable(ax)
-    cbaxes = divider.append_axes("right", size="4%", pad=.15)
-    m = plt.cm.ScalarMappable(cmap=plt.cm.bwr,norm=midnorm)
-    m.set_array(mesh)
-    m.set_clim(clim[0],clim[1])
-    cb = plt.colorbar(m,
-                    boundaries=np.linspace(clim[0],clim[1], 128),
-                    cax=cbaxes)
-    cb_ytick = np.linspace(clim[0],clim[1],5)
-    cb.ax.set_yticks(cb_ytick)
-    cb.ax.set_yticklabels(['{:.0f}'.format(x) for x in cb_ytick])
-    cb.ax.set_ylabel('Relative resistivity difference\n(%)')
-residual_normal_grid = ((rho_normal_grid - rho_grid)/rho_grid)*100
-# plot_residual(ax=ax4, grid=grid, data=residual_normal_grid, title='Normal mesh resistivity difference profile', **kw_compare)
-plot_residual_contour(ax=ax4, grid=grid, data=residual_normal_grid, title='Normal mesh resistivity difference profile',mesh_x=mesh_x,mesh_y=mesh_y, **kw_compare)
-ax4.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'--k')
-# Subplot 6:Layered mesh resistivity residual
-residual_layer_grid = ((rho_layer_grid - rho_grid)/rho_grid)*100
-# plot_residual(ax=ax6, grid=grid, data=residual_layer_grid, title='Structured constrained resistivity difference profile', **kw_compare)
-plot_residual_contour(ax=ax6, grid=grid, data=residual_layer_grid, title='Structured constrained resistivity difference profile',mesh_x=mesh_x,mesh_y=mesh_y, **kw_compare)
-ax6.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'-k')
-
-fig.savefig(join('results','Compare.png'), dpi=300, bbox_inches='tight', transparent=False)
 
 # %%
 fig,ax = plt.subplots(figsize=(6.4, 4.8))
-scatter = ax.scatter(df['X'], df['Y'], c=mark, marker='o',s=1,cmap='Blues',
-                     vmin=-1,vmax=1
+scatter = ax.scatter(x=np.array(xy)[:,0],y=np.array(xy)[:,1], c=SWC_real_partial#Layers_water_content_partial[0]['SWC_normal_partial']
+                     , marker='o',s=1,cmap='Blues',
+                     vmin=min(df['theta']),vmax=max(df['theta'])
                      )
 ax.set_xlabel('X (m)')
 ax.set_ylabel('Y (m)')
-ax.set_title(r'$H_p$ Scatter Plot To COMSOL')
+ax.set_title(r'Scatter Plot To COMSOL')
 ax.set_aspect('equal')
 ax.set_xlim([0, 30])
 ax.set_ylim([5,20])
 divider = make_axes_locatable(ax)
 cax = divider.append_axes('right', size='2.5%', pad=0.05)
 cbar = fig.colorbar(scatter, cax=cax)
-cbar.set_label(r'$mark$')
+# cbar.set_label(r'$mark$')
 # %%
 # Hp_normal = convert_resistivity_to_Hp(df, mgr_normal.model, mgr_normal.paraDomain, interface_coords)
 fig,ax = plt.subplots(figsize=(6.4, 4.8))
