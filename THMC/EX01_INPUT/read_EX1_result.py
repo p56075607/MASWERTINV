@@ -63,7 +63,7 @@ fig, ax = plt.subplots(figsize=(8,8))
 for i in range(20):
     t = solution_times[i*2]
     area = np.trapz(-yTHMC, x = (Variable_all[:,1,i] - Variable_all[:,1,0*24]))
-    infiltrated_water = rainfall_rate_cmday*t/10
+    infiltrated_water = rainfall_rate_cmday*t/100
 
     Variable_t = Variable_all[:,:,i]
     ax.plot(Variable_t[:,1],yTHMC,label = r'day {}: $\Delta =${:.3f}, R = {:.3f} '.format(t,area,infiltrated_water))
