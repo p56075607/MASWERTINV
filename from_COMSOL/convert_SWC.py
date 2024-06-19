@@ -14,6 +14,7 @@ from os import listdir
 from matplotlib.patches import Polygon
 from shapely.geometry import LineString, Point
 from scipy.optimize import root
+import pickle
 
 def import_geometry_csv():
     geo = pd.read_csv('geometry.csv', header=None)
@@ -219,12 +220,25 @@ def Forward_inversion(csv_file_name,geo=geo,plot=True):
 
 def van_genuchten_inv(theta, theta_r, theta_s, alpha, n):
     if theta == theta_s:
-        return 0  # 飽和??態?U?瑰ㄓO?蘉Y設置?偎s
+        return 0  
     m = 1 - 1/n
     func = lambda h: theta_r + (theta_s - theta_r) / (1 + (alpha * np.abs(h))**n)**m - theta
     
-    # 使用?h?茠鴝l猜測??來提??穩健性
     initial_guesses = [-1, -10, -100, -1000]
+    for h_guess in initial_guesses:
+        sol = root(func, h_guess)
+        if sol.success:
+            return sol.x[0]
+    
+    raise ValueError(f"Solution not found for theta = {theta}")
+
+def brooks_corey_inv(theta, theta_r, theta_s, alpha, n):
+    if theta == theta_s:
+        return 0  
+    
+    func = lambda h: theta_r + (theta_s - theta_r) * (alpha * np.abs(h))**(-n) - theta
+
+    initial_guesses = [-1, -10, -100, -1000, -10000, -100000, -1000000, -10000000]
     for h_guess in initial_guesses:
         sol = root(func, h_guess)
         if sol.success:
@@ -240,36 +254,43 @@ def convert_resistivity_to_Hp(df, resistivity, mesh, interface_coords):
     line = LineString(interface_coords)
     SWC = np.zeros(len(df))
     Hp = np.zeros(len(df))
-    # 檢查每?蚋I
+    # Check each point
     for i, point in enumerate(df[['X', 'Y']].to_numpy()):
         point = Point(point)
         distance = line.distance(point)
-        # ?P斷點?蛫鴭顜朣u?漲鼽m
         if point.y > line.interpolate(line.project(point)).y:
-            n = 1.83
+            # [Top layer] SWRC parameters
+            theta_r = 0.041  
+            theta_s = 0.412  
+            alpha = 0.068    
+            n = 0.322
+
+            n_Archies = 1.83
             cFluid = 1/(0.57*106)
-            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
+            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n_Archies)
 
-            # [Soil] Van Genuchten 模??參數
-            theta_r = 0.034  # 殘餘?t?艨q
-            theta_s = 0.46  # 飽和?t?艨q
-            alpha = 1.6     # 經驗參數
-            n = 1.37       # 經驗參數
+            if SWC[i] <= theta_r:
+                SWC[i] = theta_r+0.0001
 
-            Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
+            Hp[i] = brooks_corey_inv(SWC[i], theta_r, theta_s, alpha, n)
+            # Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
 
         else:
-            n = 1.34
+            # [Bottom layer] SWRC parameters
+            theta_r = 0.090  
+            theta_s = 0.385  
+            alpha = 0.027     
+            n = 0.131       
+            
+            n_Archies = 1.34
             cFluid = 1/(0.58*75)
-            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n)
+            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n_Archies)
 
-            # [Rock] Van Genuchten 模??參數
-            theta_r = 0.031  # 殘餘?t?艨q
-            theta_s = 0.467  # 飽和?t?艨q
-            alpha = 3.64     # 經驗參數
-            n = 1.121       # 經驗參數
-
-            Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
+            if SWC[i] <= theta_r:
+                SWC[i] = theta_r+0.0001
+            
+            Hp[i] = brooks_corey_inv(SWC[i], theta_r, theta_s, alpha, n)
+            #Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
 
 
     return Hp, SWC
@@ -284,6 +305,26 @@ def extract_day_number(filename):
 csvfiles = sorted(csvfiles, key=extract_day_number)
 print(csvfiles)
 
+def save_inversion_results(mgr, save_ph):
+    mgr.saveResult(save_ph)
+    # Export the information about the inversion
+    output_ph = join(save_ph,'ERTManager','inv_info.txt')
+    with open(output_ph, 'w') as write_obj:
+        write_obj.write('## Final result ##\n')
+        write_obj.write('rrms:{}\n'.format(mgr.inv.relrms()))
+        write_obj.write('chi2:{}\n'.format(mgr.inv.chi2()))
+
+        write_obj.write('## Inversion parameters ##\n')
+        write_obj.write('use lam:{}\n'.format(mgr.inv.lam))
+
+        write_obj.write('## Iteration ##\n')
+        write_obj.write('Iter.  rrms  chi2\n')
+        for iter in range(len(mgr.inv.rrmsHistory)):
+            write_obj.write('{:.0f},{:.2f},{:.2f}\n'.format(iter,mgr.inv.rrmsHistory[iter],mgr.inv.chi2History[iter]))
+    # Export model response in this inversion 
+    pg.utils.saveResult(join(save_ph,'ERTManager','model_response.txt'),
+                        data=mgr.inv.response, mode='w')
+
 Layers_water_content = {}
 for i,csv_file_name in enumerate(csvfiles):
     print('Processing', csv_file_name)
@@ -293,20 +334,74 @@ for i,csv_file_name in enumerate(csvfiles):
 
     SWC_real = df['theta'].to_numpy()
 
-    RRMSE = lambda x, y: np.sqrt(np.sum(((x - y)/y)**2) / len(x)) * 100
+    save_ph = join('Inversion_results',csv_file_name[-7:-4]+'constrained')
+    save_inversion_results(mgr, save_ph)
+
+    # save_ph = join('Inversion_results',csv_file_name[-7:-4]+'normal')
+    # save_inversion_results(mgr_normal, save_ph)
+
     Layers_water_content[i] = {
+        'df': df,
         'SWC': SWC,
         'SWC_normal': SWC_normal,
-        'RRMSE': RRMSE(SWC, SWC_real),
-        'RRMSE_normal': RRMSE(SWC_normal, SWC_real),
-        'mgr': mgr,
-        'mgr_normal': mgr_normal,
-        'data': data,
+        'SWC_real': SWC_real,
+        'Hp': Hp,
+        'Hp_normal': Hp_normal,
         'resistivity': resistivity,
+        
     }
-    print('RRMSE of SWC:', Layers_water_content[i]['RRMSE'])
-    print('RRMSE of SWC normal:', Layers_water_content[i]['RRMSE_normal'])
 
+open('rainfall.pkl', 'wb').write(pickle.dumps(Layers_water_content))
+
+
+# %%
+def load_inversion_results(save_ph):
+    output_ph = join(save_ph,'ERTManager')
+    para_domain = pg.load(join(output_ph,'resistivity-pd.bms'))
+    mesh_fw = pg.load(join(output_ph,'resistivity-mesh.bms'))
+    # Load data file
+    data_path = join(output_ph,'data.dat')
+    data = ert.load(data_path)
+    investg_depth = (max(pg.x(data))-min(pg.x(data)))*0.3
+    # Load model response
+    resp_path = join(output_ph,'model_response.txt')
+    response = np.loadtxt(resp_path)
+    model = pg.load(join(output_ph,'resistivity.vector'))
+    coverage = pg.load(join(output_ph,'resistivity-cov.vector'))
+
+    inv_info_path = join(output_ph,'inv_info.txt')
+    Line = []
+    section_idx = 0
+    with open(inv_info_path, 'r') as read_obj:
+        for i,line in enumerate(read_obj):
+                Line.append(line.rstrip('\n'))
+
+    final_result = Line[Line.index('## Final result ##')+1:Line.index('## Inversion parameters ##')]
+    rrms = float(final_result[0].split(':')[1])
+    print(final_result)
+    chi2 = float(final_result[1].split(':')[1])
+    inversion_para = Line[Line.index('## Inversion parameters ##')+1:Line.index('## Iteration ##')]
+    lam = int(inversion_para[0].split(':')[1])
+    iteration = Line[Line.index('## Iteration ##')+2:]
+    rrmsHistory = np.zeros(len(iteration))
+    chi2History = np.zeros(len(iteration))
+    for i in range(len(iteration)):
+        rrmsHistory[i] = float(iteration[i].split(',')[1])
+        chi2History[i] = float(iteration[i].split(',')[2])
+
+    mgr_dict = {'paraDomain': para_domain, 'mesh_fw': mesh_fw, 'data': data, 
+                'response': response, 'model': model, 'coverage': coverage, 
+                'investg_depth': investg_depth, 'rrms': rrms, 'chi2': chi2, 'lam': lam,
+                'rrmsHistory': rrmsHistory, 'chi2History': chi2History}
+
+    return mgr_dict
+for i,csv_file_name in enumerate(csvfiles[:1]):
+    read_Layers_water_content = pickle.loads(open('rainfall.pkl', 'rb').read())
+    save_ph = join('Inversion_results',csv_file_name[-7:-4]+'constrained')
+    read_Layers_water_content[i]['mgr'] = load_inversion_results(save_ph)
+    save_ph = join('Inversion_results', csv_file_name[-7:-4]+'normal')
+    read_Layers_water_content[i]['mgr_normal'] = load_inversion_results(save_ph)
+    read_Layers_water_content[i]['data'] = read_Layers_water_content[i]['mgr']['data']
 
 # %%
 def plot_compare_result(Layers_water_content ,csv_file_name):
@@ -342,21 +437,21 @@ def plot_compare_result(Layers_water_content ,csv_file_name):
     ax1.set_xlim([min(geo['x']), max(geo['x'])])
     ax1.set_ylim([min(geo['y']),max(geo['y'])])
     def plot_resistivity(ax, mgr, data, title, **kw):
-        pg.viewer.showMesh(mgr.paraDomain, mgr.model,coverage=mgr.coverage(),#grid,data=rho_normal_grid,
+        pg.viewer.showMesh(mgr['paraDomain'], mgr['model'],coverage=mgr['coverage'],#grid,data=rho_normal_grid,
                         ax=ax, **kw)
         ax.plot(np.array(pg.x(data)), np.array(pg.y(data)),'kv',markersize=3)
         ax.set_title(title,fontweight="bold", size=16)
         ax.set_xlim([min(geo['x']), max(geo['x'])])
         ax.set_ylim([min(geo['y']),max(geo['y'])])
         ax.text(left+1,min(geo['y'])+1,'RRMS: {:.2f}%'.format(
-                mgr.inv.relrms())
+                mgr['rrms'])
                     ,fontweight="bold", size=16)
     # Subplot 3:normal grid 
-    rho_normal_grid = pg.interpolate(mgr_normal.paraDomain, mgr_normal.model, grid.cellCenters())
+    rho_normal_grid = pg.interpolate(mgr_normal['paraDomain'], mgr_normal['model'], grid.cellCenters())
     plot_resistivity(ax=ax3, mgr=mgr_normal, data=data, title='Normal mesh inverted resistivity profile', **kw)
     ax3.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'--k')
     # Subplot 5:structured constrained grid 
-    rho_layer_grid = pg.interpolate(mgr.paraDomain, mgr.model, grid.cellCenters())
+    rho_layer_grid = pg.interpolate(mgr['paraDomain'], mgr['model'], grid.cellCenters())
     plot_resistivity(ax=ax5, mgr=mgr, data=data, title='Structured constrained inverted resistivity profile', **kw)
     ax5.plot(pg.x(slope.nodes()),pg.y(slope.nodes()),'-k')
     # Plot the residual profile
@@ -415,11 +510,11 @@ def plot_compare_result(Layers_water_content ,csv_file_name):
     fig.savefig(join('COMSOL_result',csv_file_name[-7:-4]+'Compare Plot.png'), dpi=300, bbox_inches='tight', transparent=False)
     plt.close()
 
-def plot_SWC_compare_result(Layers_water_content, csv_file_name, df):
+def plot_SWC_compare_result(Layers_water_content, csv_file_name):
 
     SWC = Layers_water_content['SWC']
     SWC_normal = Layers_water_content['SWC_normal']
-    SWC_real = df['theta'].to_numpy()
+    SWC_real = Layers_water_content['df']['theta'].to_numpy()
 
     # Comparesion of the results by the residual profile
     # Re-interpolate the grid
@@ -467,8 +562,8 @@ def plot_SWC_compare_result(Layers_water_content, csv_file_name, df):
 
     # Plot the residual profile
     # Calculate the SWC relative difference
-    kw_compare = dict(cMin=-0.3, cMax=0.3, cMap='bwr',
-                    label='SWC difference')
+    kw_compare = dict(cMin=-50, cMax=50, cMap='bwr',
+                    label='SWC relative difference \n(%)')
     def plot_SWC_residual_contour(ax, data, title,grid_x,grid_y, **kw_compare):
         class StretchOutNormalize(plt.Normalize):
             def __init__(self, vmin=None, vmax=None, low=None, up=None, clip=False):
@@ -508,22 +603,21 @@ def plot_SWC_compare_result(Layers_water_content, csv_file_name, df):
                         cax=cbaxes)
         cb_ytick = np.linspace(clim[0],clim[1],5)
         cb.ax.set_yticks(cb_ytick)
-        cb.ax.set_yticklabels(['{:.3f}'.format(x) for x in cb_ytick])
+        cb.ax.set_yticklabels(['{:.0f}'.format(x) for x in cb_ytick])
         cb.ax.set_ylabel(kw_compare['label'])
 
     # Subplot 4:Normal mesh SWC residual
-    residual_normal_grid = ((grid_theta_normal - grid_theta_real))
+    residual_normal_grid = ((grid_theta_normal - grid_theta_real)/grid_theta_real)*100
     plot_SWC_residual_contour(ax=ax4, data=residual_normal_grid, title='Normal mesh SWC difference profile',grid_x=grid_x, grid_y=grid_y, **kw_compare)
     # Subplot 6:Constrained mesh SWC residual
-    residual_constrain_grid = ((grid_theta_constrain - grid_theta_real))
+    residual_constrain_grid = ((grid_theta_constrain - grid_theta_real)/grid_theta_real)*100
     plot_SWC_residual_contour(ax=ax6, data=residual_constrain_grid, title='Structured constrained SWC difference profile',grid_x=grid_x, grid_y=grid_y, **kw_compare)
     
     fig.savefig(join('COMSOL_result_SWC',csv_file_name[-7:-4]+'SWC Compare Plot.png'), dpi=300, bbox_inches='tight', transparent=False)
 
-for j,csv_file_name in enumerate(csvfiles):
-    df = import_COMSOL_csv(csv_name = join(csv_path,csv_file_name),plot=False,style='scatter')
-    plot_compare_result(Layers_water_content[j],csv_file_name)
-    plot_SWC_compare_result(Layers_water_content[j], csv_file_name, df)
+for j,csv_file_name in enumerate(csvfiles[:1]):    
+    # plot_compare_result(read_Layers_water_content[j],csv_file_name)
+    plot_SWC_compare_result(read_Layers_water_content[j], csv_file_name)
 # %%
 Layers_water_content_partial = {}
 for j,csv_file_name in enumerate(csvfiles):
@@ -576,57 +670,65 @@ ax.set_title('RRMSE between True SWC and Inverted SWC')
 ax.legend(bbox_to_anchor=(1, 1))
 fig.savefig(join('results', 'RRMSE_SWC.png'), dpi=300, bbox_inches='tight')
 # %%
+for j,csv_file_name in enumerate(csvfiles[:1]):
+    df = import_COMSOL_csv(csv_name = join(csv_path,csv_file_name),plot=False,style='scatter')
+    df['theta_constrain_inverted'] = Layers_water_content[j]['SWC']
+    df['theta_normal_inverted'] = Layers_water_content[j]['SWC_normal']
+    df['pressure_head_constrain'] = read_Layers_water_content[j]['Hp']
+    df['pressure_head_normal'] = read_Layers_water_content[j]['Hp_normal']
+
+    df.to_csv(join('To COMSOL csv','inverted_'+csv_file_name), index=False)
 
 
-# %%
-fig,ax = plt.subplots(figsize=(6.4, 4.8))
-scatter = ax.scatter(x=np.array(xy)[:,0],y=np.array(xy)[:,1], c=SWC_real_partial#Layers_water_content_partial[0]['SWC_normal_partial']
-                     , marker='o',s=1,cmap='Blues',
-                     vmin=min(df['theta']),vmax=max(df['theta'])
-                     )
-ax.set_xlabel('X (m)')
-ax.set_ylabel('Y (m)')
-ax.set_title(r'Scatter Plot To COMSOL')
-ax.set_aspect('equal')
-ax.set_xlim([0, 30])
-ax.set_ylim([5,20])
-divider = make_axes_locatable(ax)
-cax = divider.append_axes('right', size='2.5%', pad=0.05)
-cbar = fig.colorbar(scatter, cax=cax)
-# cbar.set_label(r'$mark$')
-# %%
-# Hp_normal = convert_resistivity_to_Hp(df, mgr_normal.model, mgr_normal.paraDomain, interface_coords)
-fig,ax = plt.subplots(figsize=(6.4, 4.8))
-scatter = ax.scatter(df['X'], df['Y'], c=Hp, marker='o',s=1,cmap='Blues',
-                     vmin=-18,vmax=0
-                     )
-ax.set_xlabel('X (m)')
-ax.set_ylabel('Y (m)')
-ax.set_title(r'$H_p$ Scatter Plot To COMSOL')
-ax.set_aspect('equal')
-ax.set_xlim([0, 30])
-ax.set_ylim([5,20])
-divider = make_axes_locatable(ax)
-cax = divider.append_axes('right', size='2.5%', pad=0.05)
-cbar = fig.colorbar(scatter, cax=cax)
-cbar.set_label(r'$m$')
-fig.savefig(join('results','Head Scatter Plot To COMSOL.png'),dpi=300,bbox_inches='tight')
+# # %%
+# fig,ax = plt.subplots(figsize=(6.4, 4.8))
+# scatter = ax.scatter(x=np.array(xy)[:,0],y=np.array(xy)[:,1], c=SWC_real_partial#Layers_water_content_partial[0]['SWC_normal_partial']
+#                      , marker='o',s=1,cmap='Blues',
+#                      vmin=min(df['theta']),vmax=max(df['theta'])
+#                      )
+# ax.set_xlabel('X (m)')
+# ax.set_ylabel('Y (m)')
+# ax.set_title(r'Scatter Plot To COMSOL')
+# ax.set_aspect('equal')
+# ax.set_xlim([0, 30])
+# ax.set_ylim([5,20])
+# divider = make_axes_locatable(ax)
+# cax = divider.append_axes('right', size='2.5%', pad=0.05)
+# cbar = fig.colorbar(scatter, cax=cax)
+# # cbar.set_label(r'$mark$')
+# # %%
+# # Hp_normal = convert_resistivity_to_Hp(df, mgr_normal.model, mgr_normal.paraDomain, interface_coords)
+# fig,ax = plt.subplots(figsize=(6.4, 4.8))
+# scatter = ax.scatter(df['X'], df['Y'], c=Hp, marker='o',s=1,cmap='Blues',
+#                      vmin=-18,vmax=0
+#                      )
+# ax.set_xlabel('X (m)')
+# ax.set_ylabel('Y (m)')
+# ax.set_title(r'$H_p$ Scatter Plot To COMSOL')
+# ax.set_aspect('equal')
+# ax.set_xlim([0, 30])
+# ax.set_ylim([5,20])
+# divider = make_axes_locatable(ax)
+# cax = divider.append_axes('right', size='2.5%', pad=0.05)
+# cbar = fig.colorbar(scatter, cax=cax)
+# cbar.set_label(r'$m$')
+# fig.savefig(join('results','Head Scatter Plot To COMSOL.png'),dpi=300,bbox_inches='tight')
 
-fig,ax = plt.subplots(figsize=(6.4, 4.8))
-scatter = ax.scatter(df['X'], df['Y'], c=SWC, marker='o',s=1,cmap='Blues',
-                     vmin=min(df['theta']),vmax=max(df['theta'])
-                     )
-ax.set_xlabel('X (m)')
-ax.set_ylabel('Y (m)')
-ax.set_title(r'$\theta$ Scatter Plot To COMSOL')
-ax.set_aspect('equal')
-ax.set_xlim([0, 30])
-ax.set_ylim([5,20])
-divider = make_axes_locatable(ax)
-cax = divider.append_axes('right', size='2.5%', pad=0.05)
-cbar = fig.colorbar(scatter, cax=cax)
-cbar.set_label(r'$\theta$')
-fig.savefig(join('results','SWC Scatter Plot To COMSOL.png'),dpi=300,bbox_inches='tight')
+# fig,ax = plt.subplots(figsize=(6.4, 4.8))
+# scatter = ax.scatter(df['X'], df['Y'], c=SWC, marker='o',s=1,cmap='Blues',
+#                      vmin=min(df['theta']),vmax=max(df['theta'])
+#                      )
+# ax.set_xlabel('X (m)')
+# ax.set_ylabel('Y (m)')
+# ax.set_title(r'$\theta$ Scatter Plot To COMSOL')
+# ax.set_aspect('equal')
+# ax.set_xlim([0, 30])
+# ax.set_ylim([5,20])
+# divider = make_axes_locatable(ax)
+# cax = divider.append_axes('right', size='2.5%', pad=0.05)
+# cbar = fig.colorbar(scatter, cax=cax)
+# cbar.set_label(r'$\theta$')
+# fig.savefig(join('results','SWC Scatter Plot To COMSOL.png'),dpi=300,bbox_inches='tight')
 # %%
 # plt.scatter(df['X'], df['Y'], c=comsol_water_content,s=1, cmap='jet_r')
 # plt.colorbar()
