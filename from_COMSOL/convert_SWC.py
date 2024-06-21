@@ -132,7 +132,7 @@ def import_COMSOL_csv(csv_name = '2Layers_water content (1a).csv',plot=True,geo=
     return df
 
 def Forward_inversion(csv_file_name,geo=geo,plot=True):
-    df = import_COMSOL_csv(csv_name = csv_file_name,plot=True,style='scatter')
+    df = import_COMSOL_csv(csv_name = csv_file_name,plot=False,style='scatter')
 
     # Tow layers
     def convert_SWC_to_resistivity(df, mesh, interface_coords,plot=True):
@@ -167,7 +167,7 @@ def Forward_inversion(csv_file_name,geo=geo,plot=True):
             fig = ax.figure
             fig.savefig(join('results','Resistivity Model from SWC.png'),dpi=300,bbox_inches='tight')
         return resistivity
-    resistivity = convert_SWC_to_resistivity(df, mesh, interface_coords,plot=True)
+    resistivity = convert_SWC_to_resistivity(df, mesh, interface_coords,plot=False)
     # resistivity_constrain = convert_SWC_to_resistivity(df, mesh_inverse_constrain, interface_coords)
 
     def combine_array(schemeName,mesh, res):
@@ -304,7 +304,7 @@ def extract_day_number(filename):
 
 csvfiles = sorted(csvfiles, key=extract_day_number)
 print(csvfiles)
-
+# %%
 def save_inversion_results(mgr, save_ph):
     mgr.saveResult(save_ph)
     # Export the information about the inversion
@@ -328,7 +328,7 @@ def save_inversion_results(mgr, save_ph):
 Layers_water_content = {}
 for i,csv_file_name in enumerate(csvfiles):
     print('Processing', csv_file_name)
-    mgr, mgr_normal, data, resistivity,df = Forward_inversion(join(csv_path,csv_file_name),geo=geo,plot=True)
+    mgr, mgr_normal, data, resistivity,df = Forward_inversion(join(csv_path,csv_file_name),geo=geo,plot=False)
     Hp, SWC= convert_resistivity_to_Hp(df, mgr.model, mgr.paraDomain, interface_coords)
     Hp_normal, SWC_normal = convert_resistivity_to_Hp(df, mgr_normal.model, mgr_normal.paraDomain, interface_coords)
 
@@ -337,8 +337,8 @@ for i,csv_file_name in enumerate(csvfiles):
     save_ph = join('Inversion_results',csv_file_name[-7:-4]+'constrained')
     save_inversion_results(mgr, save_ph)
 
-    # save_ph = join('Inversion_results',csv_file_name[-7:-4]+'normal')
-    # save_inversion_results(mgr_normal, save_ph)
+    save_ph = join('Inversion_results',csv_file_name[-7:-4]+'normal')
+    save_inversion_results(mgr_normal, save_ph)
 
     Layers_water_content[i] = {
         'df': df,
@@ -352,8 +352,6 @@ for i,csv_file_name in enumerate(csvfiles):
     }
 
 open('rainfall.pkl', 'wb').write(pickle.dumps(Layers_water_content))
-
-
 # %%
 def load_inversion_results(save_ph):
     output_ph = join(save_ph,'ERTManager')
@@ -378,7 +376,6 @@ def load_inversion_results(save_ph):
 
     final_result = Line[Line.index('## Final result ##')+1:Line.index('## Inversion parameters ##')]
     rrms = float(final_result[0].split(':')[1])
-    print(final_result)
     chi2 = float(final_result[1].split(':')[1])
     inversion_para = Line[Line.index('## Inversion parameters ##')+1:Line.index('## Iteration ##')]
     lam = int(inversion_para[0].split(':')[1])
@@ -395,8 +392,10 @@ def load_inversion_results(save_ph):
                 'rrmsHistory': rrmsHistory, 'chi2History': chi2History}
 
     return mgr_dict
-for i,csv_file_name in enumerate(csvfiles[:1]):
-    read_Layers_water_content = pickle.loads(open('rainfall.pkl', 'rb').read())
+
+read_Layers_water_content = pickle.loads(open('rainfall.pkl', 'rb').read())
+
+for i,csv_file_name in enumerate(csvfiles):
     save_ph = join('Inversion_results',csv_file_name[-7:-4]+'constrained')
     read_Layers_water_content[i]['mgr'] = load_inversion_results(save_ph)
     save_ph = join('Inversion_results', csv_file_name[-7:-4]+'normal')
@@ -407,6 +406,7 @@ for i,csv_file_name in enumerate(csvfiles[:1]):
 def plot_compare_result(Layers_water_content ,csv_file_name):
 
     resistivity = Layers_water_content['resistivity']
+    print(Layers_water_content['data'])
     data = Layers_water_content['data']
     mgr_normal = Layers_water_content['mgr_normal']
     mgr = Layers_water_content['mgr']
@@ -515,6 +515,7 @@ def plot_SWC_compare_result(Layers_water_content, csv_file_name):
     SWC = Layers_water_content['SWC']
     SWC_normal = Layers_water_content['SWC_normal']
     SWC_real = Layers_water_content['df']['theta'].to_numpy()
+    df = Layers_water_content['df']
 
     # Comparesion of the results by the residual profile
     # Re-interpolate the grid
@@ -615,8 +616,8 @@ def plot_SWC_compare_result(Layers_water_content, csv_file_name):
     
     fig.savefig(join('COMSOL_result_SWC',csv_file_name[-7:-4]+'SWC Compare Plot.png'), dpi=300, bbox_inches='tight', transparent=False)
 
-for j,csv_file_name in enumerate(csvfiles[:1]):    
-    # plot_compare_result(read_Layers_water_content[j],csv_file_name)
+for j,csv_file_name in enumerate(csvfiles):    
+    plot_compare_result(read_Layers_water_content[j],csv_file_name)
     plot_SWC_compare_result(read_Layers_water_content[j], csv_file_name)
 # %%
 Layers_water_content_partial = {}
@@ -670,10 +671,10 @@ ax.set_title('RRMSE between True SWC and Inverted SWC')
 ax.legend(bbox_to_anchor=(1, 1))
 fig.savefig(join('results', 'RRMSE_SWC.png'), dpi=300, bbox_inches='tight')
 # %%
-for j,csv_file_name in enumerate(csvfiles[:1]):
+for j,csv_file_name in enumerate(csvfiles):
     df = import_COMSOL_csv(csv_name = join(csv_path,csv_file_name),plot=False,style='scatter')
-    df['theta_constrain_inverted'] = Layers_water_content[j]['SWC']
-    df['theta_normal_inverted'] = Layers_water_content[j]['SWC_normal']
+    df['theta_constrain_inverted'] = read_Layers_water_content[j]['SWC']
+    df['theta_normal_inverted'] = read_Layers_water_content[j]['SWC_normal']
     df['pressure_head_constrain'] = read_Layers_water_content[j]['Hp']
     df['pressure_head_normal'] = read_Layers_water_content[j]['Hp_normal']
 
