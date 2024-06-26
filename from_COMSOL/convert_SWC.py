@@ -306,7 +306,7 @@ def extract_day_number(filename):
 csvfiles = sorted(csvfiles, key=extract_day_number)
 print(csvfiles)
 
-for i,csv_file_name in enumerate(csvfiles[:1]):
+for i,csv_file_name in enumerate(csvfiles):
     df = read_Layers_water_content[i]['df']
 
     Hp, SWC= convert_resistivity_to_Hp(df, read_Layers_water_content[i]['mgr']['model'], read_Layers_water_content[i]['mgr']['paraDomain'], interface_coords)
