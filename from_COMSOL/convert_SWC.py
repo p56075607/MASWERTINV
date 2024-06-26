@@ -15,6 +15,7 @@ from matplotlib.patches import Polygon
 from shapely.geometry import LineString, Point
 from scipy.optimize import root
 import pickle
+from scipy.spatial import Delaunay
 
 def import_geometry_csv():
     geo = pd.read_csv('geometry.csv', header=None)
@@ -233,67 +234,67 @@ def van_genuchten_inv(theta, theta_r, theta_s, alpha, n):
     raise ValueError(f"Solution not found for theta = {theta}")
 
 def brooks_corey_inv(theta, theta_r, theta_s, alpha, n):
-    if theta == theta_s:
-        return 0  
+    Se = (theta - theta_r) / (theta_s - theta_r)
     
-    func = lambda h: theta_r + (theta_s - theta_r) * (alpha * np.abs(h))**(-n) - theta
+    if Se == 1:
+        return -(1 / alpha)/100 #[m]
+    else:
+        h = -(1 / alpha) * (Se ** (-1 / n))/100 #[m]
+        return h
 
-    initial_guesses = [-1, -10, -100, -1000, -10000, -100000, -1000000, -10000000]
-    for h_guess in initial_guesses:
-        sol = root(func, h_guess)
-        if sol.success:
-            return sol.x[0]
-    
-    raise ValueError(f"Solution not found for theta = {theta}")
+def Archie_inv(resistivity, cFluid, n_Archies):
+    return (1 / (resistivity * cFluid)) ** (1 / n_Archies)
 
 def convert_resistivity_to_Hp(df, resistivity, mesh, interface_coords):
-    grid_resistivity = griddata((np.array(mesh.cellCenters())[:, :2]), resistivity, 
-                                (df[['X', 'Y']].to_numpy()), method='linear', fill_value=np.nan)
-    fill_value = np.nanmedian(grid_resistivity)
-    grid_resistivity = np.nan_to_num(grid_resistivity, nan=fill_value)
+
+    # Define interface line
     line = LineString(interface_coords)
-    SWC = np.zeros(len(df))
-    Hp = np.zeros(len(df))
-    # Check each point
-    for i, point in enumerate(df[['X', 'Y']].to_numpy()):
-        point = Point(point)
-        distance = line.distance(point)
-        if point.y > line.interpolate(line.project(point)).y:
+    
+    # Initialize SWC and Hp arrays for mesh points
+    mesh_SWC = np.zeros(len(resistivity))
+    mesh_Hp = np.zeros(len(resistivity))
+    
+    # Convert resistivity to SWC and Hp at mesh points
+    for i, point in enumerate(np.array(mesh.cellCenters())[:, :2]):
+        point_geom = Point(point)
+        if point[1] > line.interpolate(line.project(point_geom)).y:
             # [Top layer] SWRC parameters
             theta_r = 0.041  
             theta_s = 0.412  
             alpha = 0.068    
             n = 0.322
-
             n_Archies = 1.83
-            cFluid = 1/(0.57*106)
-            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n_Archies)
-
-            if SWC[i] <= theta_r:
-                SWC[i] = theta_r+0.0001
-
-            Hp[i] = brooks_corey_inv(SWC[i], theta_r, theta_s, alpha, n)
-            # Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
-
+            cFluid = 1 / (0.57 * 106)
         else:
             # [Bottom layer] SWRC parameters
             theta_r = 0.090  
             theta_s = 0.385  
             alpha = 0.027     
-            n = 0.131       
-            
+            n = 0.131
             n_Archies = 1.34
-            cFluid = 1/(0.58*75)
-            SWC[i] = (1/(grid_resistivity[i]*cFluid))**(1/n_Archies)
+            cFluid = 1 / (0.58 * 75)
+        
+        mesh_SWC[i] = Archie_inv(resistivity[i], cFluid, n_Archies)
+        
+        if mesh_SWC[i] <= theta_r:
+            print('SWC[i]',mesh_SWC[i],point)
+            mesh_SWC[i] = theta_r + 0.0001
+        
+        mesh_Hp[i] = brooks_corey_inv(mesh_SWC[i], theta_r, theta_s, alpha, n)
+    
+    # Interpolate SWC and Hp to the target points
+    df_coords = df[['X', 'Y']].to_numpy()
+    grid_SWC = griddata(np.array(mesh.cellCenters())[:, :2], mesh_SWC, df_coords, method='linear', fill_value=np.nan)
+    grid_Hp = griddata(np.array(mesh.cellCenters())[:, :2], mesh_Hp, df_coords, method='linear', fill_value=np.nan)
+    
+    fill_value_SWC = np.nanmedian(grid_SWC)
+    fill_value_Hp = np.nanmedian(grid_Hp)
+    
+    grid_SWC = np.nan_to_num(grid_SWC, nan=fill_value_SWC)
+    grid_Hp = np.nan_to_num(grid_Hp, nan=fill_value_Hp)
+    
+    return grid_Hp, grid_SWC
 
-            if SWC[i] <= theta_r:
-                SWC[i] = theta_r+0.0001
-            
-            Hp[i] = brooks_corey_inv(SWC[i], theta_r, theta_s, alpha, n)
-            #Hp[i] = van_genuchten_inv(SWC[i], theta_r, theta_s, alpha, n)
-
-
-    return Hp, SWC
 
 csv_path = 'water content (from COMSOL)'
 csvfiles = [_ for _ in listdir(csv_path) if _.endswith('.csv')]
@@ -304,6 +305,18 @@ def extract_day_number(filename):
 
 csvfiles = sorted(csvfiles, key=extract_day_number)
 print(csvfiles)
+
+for i,csv_file_name in enumerate(csvfiles[:1]):
+    df = read_Layers_water_content[i]['df']
+
+    Hp, SWC= convert_resistivity_to_Hp(df, read_Layers_water_content[i]['mgr']['model'], read_Layers_water_content[i]['mgr']['paraDomain'], interface_coords)
+    Hp_normal, SWC_normal = convert_resistivity_to_Hp(df, read_Layers_water_content[i]['mgr_normal']['model'], read_Layers_water_content[i]['mgr_normal']['paraDomain'], interface_coords)
+
+    df['pressure_head_constrain'] = Hp
+    df['pressure_head_normal'] = Hp_normal
+
+    df.to_csv(join('To COMSOL csv','inverted_pressure_head_constrain'+csv_file_name), columns=['X', 'Y', 'pressure_head_constrain'], index=False)
+    df.to_csv(join('To COMSOL csv','inverted_pressure_head_normal'+csv_file_name), columns=['X', 'Y', 'pressure_head_normal'], index=False)
 # %%
 def save_inversion_results(mgr, save_ph):
     mgr.saveResult(save_ph)
