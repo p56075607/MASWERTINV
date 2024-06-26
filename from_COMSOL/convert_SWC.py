@@ -162,13 +162,13 @@ def Forward_inversion(csv_file_name,geo=geo,plot=True):
                     xlabel='X (m)', ylabel='Y (m)', 
                     label=pg.unit('res'), orientation='vertical')
             ax,_ = pg.show(mesh,resistivity, **kw)
-            ax.set_xlim([0, 30])
-            ax.set_ylim([5,20])
+            ax.set_xlim([min(geo['x']), max(geo['x'])])
+            ax.set_ylim([min(geo['y']),max(geo['y'])])
             ax.set_title('Resistivity Model from SWC')
             fig = ax.figure
             fig.savefig(join('results','Resistivity Model from SWC.png'),dpi=300,bbox_inches='tight')
         return resistivity
-    resistivity = convert_SWC_to_resistivity(df, mesh, interface_coords,plot=False)
+    resistivity = convert_SWC_to_resistivity(df, mesh, interface_coords,plot=True)
     # resistivity_constrain = convert_SWC_to_resistivity(df, mesh_inverse_constrain, interface_coords)
 
     def combine_array(schemeName,mesh, res):
@@ -364,7 +364,7 @@ for i,csv_file_name in enumerate(csvfiles):
         
     }
 
-open('rainfall.pkl', 'wb').write(pickle.dumps(Layers_water_content))
+# open('rainfall.pkl', 'wb').write(pickle.dumps(Layers_water_content))
 # %%
 def load_inversion_results(save_ph):
     output_ph = join(save_ph,'ERTManager')
@@ -634,6 +634,7 @@ for j,csv_file_name in enumerate(csvfiles):
     plot_SWC_compare_result(read_Layers_water_content[j], csv_file_name)
 # %%
 Layers_water_content_partial = {}
+Layers_water_content = read_Layers_water_content
 for j,csv_file_name in enumerate(csvfiles):
     df = import_COMSOL_csv(csv_name = join(csv_path,csv_file_name),plot=False,style='scatter')
     interface_coords = np.array(geo[1:-1])
@@ -666,9 +667,9 @@ for j,csv_file_name in enumerate(csvfiles):
     }
 
 # %%
-rain_rate = 3 # mm/day
+rain_rate = 3*5 # mm/day
 # rain for 10 days
-cumulative_rain = [rain_rate * i for i in range(1, 12)]
+cumulative_rain = [rain_rate * i for i in range(0, 11)]
 RRMSE_all = [Layers_water_content_partial[key]['RRMSE'] for key in Layers_water_content_partial]
 RRMSE_normal_all = [Layers_water_content_partial[key]['RRMSE_normal'] for key in Layers_water_content_partial]
 fig, ax = plt.subplots(figsize=(6.4, 4.8))
@@ -681,7 +682,9 @@ ax.hlines(y=np.mean(RRMSE_normal_all), xmin=min(cumulative_rain), xmax=max(cumul
 ax.set_xlabel('Cumulative infiltration (mm)')
 ax.set_ylabel('Soil Water Content RRMSE (%)')
 ax.set_title('RRMSE between True SWC and Inverted SWC')
+ax.set_xticks(cumulative_rain)
 ax.legend(bbox_to_anchor=(1, 1))
+ax.grid(linestyle='--', alpha=0.5)
 fig.savefig(join('results', 'RRMSE_SWC.png'), dpi=300, bbox_inches='tight')
 # %%
 for j,csv_file_name in enumerate(csvfiles):
