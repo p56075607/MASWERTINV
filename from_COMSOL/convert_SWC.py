@@ -306,17 +306,6 @@ def extract_day_number(filename):
 csvfiles = sorted(csvfiles, key=extract_day_number)
 print(csvfiles)
 
-for i,csv_file_name in enumerate(csvfiles):
-    df = read_Layers_water_content[i]['df']
-
-    Hp, SWC= convert_resistivity_to_Hp(df, read_Layers_water_content[i]['mgr']['model'], read_Layers_water_content[i]['mgr']['paraDomain'], interface_coords)
-    Hp_normal, SWC_normal = convert_resistivity_to_Hp(df, read_Layers_water_content[i]['mgr_normal']['model'], read_Layers_water_content[i]['mgr_normal']['paraDomain'], interface_coords)
-
-    df['pressure_head_constrain'] = Hp
-    df['pressure_head_normal'] = Hp_normal
-
-    df.to_csv(join('To COMSOL csv','inverted_pressure_head_constrain'+csv_file_name), columns=['X', 'Y', 'pressure_head_constrain'], index=False)
-    df.to_csv(join('To COMSOL csv','inverted_pressure_head_normal'+csv_file_name), columns=['X', 'Y', 'pressure_head_normal'], index=False)
 # %%
 def save_inversion_results(mgr, save_ph):
     mgr.saveResult(save_ph)
@@ -633,37 +622,78 @@ for j,csv_file_name in enumerate(csvfiles):
     plot_compare_result(read_Layers_water_content[j],csv_file_name)
     plot_SWC_compare_result(read_Layers_water_content[j], csv_file_name)
 # %%
+def interpolate_resistivity(Layers_water_content):
+    resistivity = Layers_water_content['resistivity']
+    data = Layers_water_content['data']
+    mgr_normal = Layers_water_content['mgr_normal']
+    mgr = Layers_water_content['mgr']
+    # Comparesion of the results by the residual profile
+    # Re-interpolate the grid
+    left = 0
+    right = 30
+    depth = 5
+
+    mesh_x = np.linspace(left,right,300)
+    mesh_y = np.linspace(-depth,20,180)
+    grid = pg.createGrid(x=mesh_x,y=mesh_y )
+    rho_grid = pg.interpolate(mesh, resistivity, grid.cellCenters())
+    rho_normal_grid = pg.interpolate(mgr_normal['paraDomain'], mgr_normal['model'], grid.cellCenters())
+    rho_layer_grid = pg.interpolate(mgr['paraDomain'], mgr['model'], grid.cellCenters())
+    
+    return grid, rho_grid, rho_normal_grid, rho_layer_grid
+
 Layers_water_content_partial = {}
 Layers_water_content = read_Layers_water_content
 for j,csv_file_name in enumerate(csvfiles):
     df = import_COMSOL_csv(csv_name = join(csv_path,csv_file_name),plot=False,style='scatter')
-    interface_coords = np.array(geo[1:-1])
-    interface_coords[:,1]= interface_coords[:,1]-5
-    line = LineString(interface_coords)
+    interface_coords_lower = np.array(geo[1:-1])
+    interface_coords_upper = np.array(geo[1:-1])
+    interface_coords_lower[:,1]= interface_coords_lower[:,1]-2
+    line_lower = LineString(interface_coords_lower)
+    line_upper = LineString(interface_coords_upper)
+
+    resistivity_normal_partial = []
+    resistivity_constrain_partial = []
+    resistivity_real_partial = []
     SWC_partial = []
     SWC_normal_partial = []
     SWC_real_partial = []
     xy = []
+    xy_resistivity = []
 
     # 檢查每個點
-    for i, point in enumerate(df[['X', 'Y']].to_numpy()):
+    # for i, point in enumerate(df[['X', 'Y']].to_numpy()):
+    #     point = Point(point)
+    #     distance = line.distance(point)
+    #     # 判斷點相對於折線的位置
+    #     if (point.y > line.interpolate(line.project(point)).y) and (point.x>6) and (point.x<24):
+    #         SWC_partial.append(Layers_water_content[j]['SWC'][i])
+    #         SWC_normal_partial.append(Layers_water_content[j]['SWC_normal'][i])
+    #         SWC_real_partial.append(df['theta'].to_numpy()[i])
+    #         xy.append(df[['X', 'Y']].to_numpy()[i])
+            
+    grid, rho_grid, rho_normal_grid, rho_layer_grid = interpolate_resistivity(Layers_water_content[j])
+    for i ,point in enumerate(np.array(grid.cellCenters())[:,:-1]):
         point = Point(point)
-        distance = line.distance(point)
-        # 判斷點相對於折線的位置
-        if (point.y > line.interpolate(line.project(point)).y) and (point.x>6) and (point.x<24):
-            SWC_partial.append(Layers_water_content[j]['SWC'][i])
-            SWC_normal_partial.append(Layers_water_content[j]['SWC_normal'][i])
-            SWC_real_partial.append(df['theta'].to_numpy()[i])
-            xy.append(df[['X', 'Y']].to_numpy()[i])
+        # check the position of the point relative to the line
+        if (point.y > line_lower.interpolate(line_lower.project(point)).y) and (point.y < line_upper.interpolate(line_upper.project(point)).y):
+            resistivity_real_partial.append(rho_grid[i])
+            resistivity_constrain_partial.append(rho_layer_grid[i])
+            resistivity_normal_partial.append(rho_normal_grid[i])
+            xy_resistivity.append([point.x, point.y])
             
         
     RRMSE = lambda x, y: np.sqrt(np.sum(((x - y)/y)**2) / len(x)) * 100
     #RRMSE = lambda x, y: 1 - np.sum((x - y)**2) / np.sum((y - np.mean(y))**2) 
     Layers_water_content_partial[j] = {
-        'SWC_partial': SWC_partial,
-        'SWC_normal_partial': SWC_normal_partial,
-        'RRMSE': RRMSE(np.array(SWC_partial), np.array(SWC_real_partial)),
-        'RRMSE_normal': RRMSE(np.array(SWC_normal_partial), np.array(SWC_real_partial))
+        # 'SWC_partial': SWC_partial,
+        # 'SWC_normal_partial': SWC_normal_partial,
+        # 'RRMSE': RRMSE(np.array(SWC_partial), np.array(SWC_real_partial)),
+        # 'RRMSE_normal': RRMSE(np.array(SWC_normal_partial), np.array(SWC_real_partial)),
+        # 'resistivity_constrain_partial': resistivity_constrain_partial,
+        # 'resistivity_normal_partial': resistivity_normal_partial,
+        'RRMSE': RRMSE(np.array((resistivity_constrain_partial)), np.array((resistivity_real_partial))),
+        'RRMSE_normal': RRMSE(np.array((resistivity_normal_partial)), np.array((resistivity_real_partial))),
     }
 
 # %%
@@ -681,11 +711,13 @@ ax.hlines(y=np.mean(RRMSE_normal_all), xmin=min(cumulative_rain), xmax=max(cumul
           colors='r', linestyles='--', label='Mean RRMSE')
 ax.set_xlabel('Cumulative infiltration (mm)')
 ax.set_ylabel('Soil Water Content RRMSE (%)')
-ax.set_title('RRMSE between True SWC and Inverted SWC')
+ax.set_title('RRMSE between True and Inverted Resistivity')
 ax.set_xticks(cumulative_rain)
 ax.legend(bbox_to_anchor=(1, 1))
 ax.grid(linestyle='--', alpha=0.5)
-fig.savefig(join('results', 'RRMSE_SWC.png'), dpi=300, bbox_inches='tight')
+fig.savefig(join('results', 'RRMSE_Resistivity.png'), dpi=300, bbox_inches='tight')
+
+pd.DataFrame(Layers_water_content_partial).transpose().to_csv(join('results', 'RRMSE_Resistivity.csv'), index=False)
 # %%
 for j,csv_file_name in enumerate(csvfiles):
     df = import_COMSOL_csv(csv_name = join(csv_path,csv_file_name),plot=False,style='scatter')
